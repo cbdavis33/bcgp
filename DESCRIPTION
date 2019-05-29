@@ -1,11 +1,11 @@
 Package: bcgp
-Title: What the Package Does (One Line, Title Case)
+Title: Bayesian Composite Gaussian Processes
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Casey",
+           family = "Davis",
            role = c("aut", "cre"),
-           email = "first.last@example.com")
+           email = "cbdavis33@gmail.com")
 Description: What the package does (one paragraph).
 License: GPL (>=3)
 Depends: 
@@ -25,4 +25,4 @@ Encoding: UTF-8
 LazyData: true
 NeedsCompilation: yes
 SystemRequirements: GNU make
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

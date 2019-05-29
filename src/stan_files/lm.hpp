@@ -159,7 +159,7 @@ public:
         intercept = vals_r__[pos__++];
         try {
             writer__.scalar_unconstrain(intercept);
-        } catch (const std::exception& e) {
+        } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable intercept: ") + e.what());
         }
 
@@ -172,7 +172,7 @@ public:
         beta = vals_r__[pos__++];
         try {
             writer__.scalar_unconstrain(beta);
-        } catch (const std::exception& e) {
+        } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable beta: ") + e.what());
         }
 
@@ -185,7 +185,7 @@ public:
         sigma = vals_r__[pos__++];
         try {
             writer__.scalar_lb_unconstrain(0,sigma);
-        } catch (const std::exception& e) {
+        } catch (const std::exception& e) { 
             throw std::runtime_error(std::string("Error transforming variable sigma: ") + e.what());
         }
 
