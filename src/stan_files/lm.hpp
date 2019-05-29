@@ -1,16 +1,16 @@
 /*
-    rstanSkeletonDefault is free software: you can redistribute it and/or modify
+    bcgp is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    rstanSkeletonDefault is distributed in the hope that it will be useful,
+    bcgp is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with rstanSkeletonDefault.  If not, see <http://www.gnu.org/licenses/>.
+    along with bcgp.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef MODELS_HPP
 #define MODELS_HPP
@@ -159,7 +159,7 @@ public:
         intercept = vals_r__[pos__++];
         try {
             writer__.scalar_unconstrain(intercept);
-        } catch (const std::exception& e) { 
+        } catch (const std::exception& e) {
             throw std::runtime_error(std::string("Error transforming variable intercept: ") + e.what());
         }
 
@@ -172,7 +172,7 @@ public:
         beta = vals_r__[pos__++];
         try {
             writer__.scalar_unconstrain(beta);
-        } catch (const std::exception& e) { 
+        } catch (const std::exception& e) {
             throw std::runtime_error(std::string("Error transforming variable beta: ") + e.what());
         }
 
@@ -185,7 +185,7 @@ public:
         sigma = vals_r__[pos__++];
         try {
             writer__.scalar_lb_unconstrain(0,sigma);
-        } catch (const std::exception& e) { 
+        } catch (const std::exception& e) {
             throw std::runtime_error(std::string("Error transforming variable sigma: ") + e.what());
         }
 
