@@ -1,6 +1,7 @@
 #' @export
 standardstationary <- function(x, y, ...) {
   if(is.vector(x)) x <- matrix(x)
+  if(!is.vector(y)) y <- as.vector(y)
   standata <- list(x = x, y = y, d = ncol(x), n = length(y))
   out <- rstan::sampling(stanmodels$standardstationary, data = standata, ...)
 
