@@ -112,21 +112,34 @@ bcgp  <- function(x, y, composite = TRUE, stationary = FALSE,
     ANSWER <- invisible(tolower(
       readline("Do you want to proceed with unscaled data for sampling? (y/n) ")))
 
-    if(ANSWER == "y"){
+    if(ANSWER != "y"){
+      cat("Scaling the data. Thank you for being rational.")
+      yScaled <- scale(y, center = TRUE, scale = TRUE)
+      xScaled <- scaleX(x)
+    }else{
       cat("Proceeding with unscaled data. You've been warned.")
       ## TODO: Add attributes for unscaled data? Might not be necessary.
       ## I'll come back to that later
       stop("I'm not proceeding for now.")
-    }else if(ANSWER == "n"){
-      cat("Scaling the data. Thank you for being rational.")
-      yScaled <- scale(y, center = TRUE, scale = TRUE)
-      xScaled <- scaleX(x)
     }
-  }
-  yScaled <- scale(y, center = TRUE, scale = TRUE)
-  xScaled <- scaleX(x)
+  }else{
+    yScaled <- scale(y, center = TRUE, scale = TRUE)
+    xScaled <- scaleX(x)
   }
 
+  if(stationary == FALSE){
+    if(composite == TRUE){
+
+    }else{ ## composite == FALSE
+
+    }
+  }else{   ## stationary == TRUE
+    if(composite == TRUE){
+
+    }else{ ## composite == FALSE
+
+    }
+  }
 
   bfit <- bcgpMCMC(x = xScaled, y = yScaled, priors = priorList, inits = initList,
                    numUpdates, numAdapt,
