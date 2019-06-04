@@ -1,4 +1,16 @@
 ## Contains all classes for the bcgp package
+setClass(Class = "bcgppriors",
+         slots - c(priors = "list",
+                   stationary = "logical",
+                   composite = "logical",
+                   noise = "logical"))
+
+setClass(Class = "bcgpinits",
+         slots = c(inits = "list",
+                   stationary = "logical",
+                   composite = "logical",
+                   noise = "logical"))
+
 setClass(Class = "bcgpmodel",
          slots = c(data = "list",       # raw and scaled, then x and y
                    priors = "list",
