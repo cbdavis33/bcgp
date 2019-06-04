@@ -6,12 +6,12 @@ setClass(Class = "bcgpmodel",
                    stationary = "logical",
                    composite = "logical",
                    algorithm = "character",
-                   scaled = "character"))
+                   scaled = "logical"))
 
 setClass(Class = "bcgpfit",
          slots = c(model_pars = "character",
                    par_dims = "list",
-                   sim,
+                   sim = "list",
                    sampler_args = "list",
                    date = "character",
                    .MISC = "environment"),

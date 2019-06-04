@@ -4,9 +4,9 @@
 \alias{bcgp}
 \title{Draw samples from a bcgp model}
 \usage{
-bcgp(x, y, priors = "default", inits = "random", noise = FALSE,
-  numUpdates = 5, numAdapt = 1000, burnin = 1000, nmcmc = 10000,
-  chains = 4, cores = getOption("mc.cores", 1L))
+bcgp(x, y, composite = TRUE, stationary = FALSE, priors = "default",
+  inits = "random", noise = FALSE, algorithm = c("M-H and Gibbs",
+  "Stan"), scaled = TRUE, ...)
 }
 \arguments{
 \item{x}{An \code{n x d} matrix containing the independent variables
@@ -14,6 +14,15 @@ in the training set.}
 
 \item{y}{A vector containing the observed response values in the training
 set.}
+
+\item{composite}{A logical, \code{TRUE} for a composite of a global process
+and a local process, \code{FALSE} for non-composite (standard GP regression).
+Defaults to \code{TRUE}.}
+
+\item{stationary}{A logical, \code{FALSE} for a non-stationary process,
+\code{TRUE} for a stationary process. If \code{FALSE}, the variance for the
+process is \eqn{\sigma^2(x)}, and if \code{TRUE}, the variance is \eqn{\sigma^2}.
+Defaults to \code{FALSE}.}
 
 \item{priors}{Can be either the string "default" or a list containing the values
 for the prior parameters.
@@ -82,5 +91,7 @@ bcgp(x, y, priors)
 }
 \seealso{
 \code{\link{createPriors}} \code{\link{createInits}}
+
+Other Major functions: \code{\link{bcgp_model}}
 }
 \concept{Major functions}
