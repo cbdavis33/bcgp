@@ -2,7 +2,7 @@
 % Please edit documentation in R/miscFuncs.R
 \name{x1Ainvx2}
 \alias{x1Ainvx2}
-\title{Create a correlation matrix.}
+\title{Multiply vector times matrix inverse times vector.}
 \usage{
 x1Ainvx2(x1, A, x2)
 }

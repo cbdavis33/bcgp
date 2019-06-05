@@ -38,7 +38,7 @@ checkValidCorMat <- function(x){
 
 }
 
-#' Create a correlation matrix.
+#' Multiply vector times matrix inverse times vector.
 #'
 #' \code{x1Ainvx2} returns a list where each element is the result of multiplying
 #' a vector times a matrix inverse times another vector.
@@ -82,6 +82,31 @@ x1Ainvx2 <- function(x1, A, x2){
     }
   }
   return(xAinvy)
+}
+
+validateXMatrix <- function(x, n, d){
+  if(nrow(x) != n) stop("Specified matrix has incorrect number of rows.")
+  if(ncol(x) != d) stop("Specified matrix has incorrect number of columns.")
+  return(NULL)
+}
+
+validateAndCreateXMat <- function(xString, n, d, xMats){
+
+  if(xString %in% names(xMats)){
+    validateXMatrix(xMats[[xString]], n, d)
+    x <- matrix(scaleX(xMats[[xString]]), ncol = d)
+  }else{
+    if(d == 1){
+      x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+    }else{
+      if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
+        x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
+      }else{
+        x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
+      }
+    }
+  }
+  return(x)
 }
 
 
