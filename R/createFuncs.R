@@ -208,3 +208,11 @@ createParamNonCompS <- function(d){
                     sigma2 = 1)
   return(paramList)
 }
+
+createXMat <- function(n, d){
+  if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
+    x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
+  }else{
+    x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
+  }
+}

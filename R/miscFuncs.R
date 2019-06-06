@@ -90,23 +90,64 @@ validateXMatrix <- function(x, n, d){
   return(NULL)
 }
 
-validateAndCreateXMat <- function(xString, n, d, xMats){
+# validateAndCreateXMat <- function(xString, n, d, xMats){
+#
+#   if(xString %in% names(xMats)){
+#     validateXMatrix(xMats[[xString]], n, d)
+#     x <- matrix(scaleX(xMats[[xString]]), ncol = d)
+#   }else{
+#     if(d == 1){
+#       x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+#     }else{
+#       if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
+#         x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
+#       }else{
+#         x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
+#       }
+#     }
+#   }
+#   return(x)
+# }
 
-  if(xString %in% names(xMats)){
-    validateXMatrix(xMats[[xString]], n, d)
-    x <- matrix(scaleX(xMats[[xString]]), ncol = d)
-  }else{
+validateAndCreateXMats <- function(xMats, n, d, nPred){
+
+  if(!("x" %in% names(xMats))){
     if(d == 1){
       x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+      xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
     }else{
-      if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
-        x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
-      }else{
-        x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
-      }
+      x <- createXMat(n, d)
+      xPred <- createXMat(nPred, d)
     }
+  }else if("x" %in% names(xMats) && !("xPred" %in% names(xMats))){
+    x <- matrix(scaleX(xMats[["x"]]), ncol = d)
+    if(d == 1){
+      xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
+    }else{
+      xPred <- createXMat(nPred, d)
+    }
+  }else{
+    x <- scaleX(xMats[["x"]])
+    xPred <- sapply(1:d, function(t)(xMats[["xPred"]][, t] -
+                                       attr(x, "scaled:minimum")[t])/
+                      attr(x, "scaled:range")[t])
   }
-  return(x)
+
+  # if("x" %in% names(xMats)){
+  #   x <- matrix(scaleX(xMats[[xString]]), ncol = d)
+  # }else{
+  #   if(d == 1){
+  #     x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+  #   }else{
+  #     if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
+  #       x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
+  #     }else{
+  #       x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
+  #     }
+  #   }
+  # }
+  toReturn <- list(x = x, xPred = xPred)
+  return(toReturn)
 }
 
 validateParameterList <- function(composite, stationary, noise, d,

@@ -48,15 +48,32 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
   }
 
   if("x" %in% xMatsNames){
-    n <- nrow(xMats[["x"]])
-    d <- ncol(xMats[["x"]])
+    nx <- nrow(xMats[["x"]])
+    dx <- ncol(xMats[["x"]])
+    if(nx != n){
+      warning(paste0("You have specified n = ", n, ", but x has ", nx,
+                     " rows. Changing n to ", nx, "."))
+      n <- nx
+    }
+    if(dx != d){
+      warning(paste0("You have specified d = ", d, ", but x has ", dx,
+                     " columns. Changing d to ", dx, "."))
+      d <- dx
+    }
   }
   if("xPred" %in% xMatsNames){
-    nPred <- nrow(xMats[["xPred"]])
+    nPredx <- nrow(xMats[["xPred"]])
+    if(nPredx != nPred){
+    warning(paste0("You have specified nPred = ", nPred, ", but nPred has ",
+                   nPredx, " rows. Changing nPred to ", nPredx, "."))
+      nPred <- nPredx
+    }
   }
 
-  x <- validateAndCreateXMat("x", n, d, xMats)
-  xPred <- validateAndCreateXMat("xPred", nPred, d, xMats)
+  xMatrices <- validateAndCreateXMats(xMats, n, d, nPred)
+  x <- xMatrices$x
+  xPred <- xMatrices$xPred
+  rm(xMatrices)
 
   if(missing(parameters)){
     parameters <- createParameterList(composite = composite,
