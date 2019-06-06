@@ -109,4 +109,10 @@ validateAndCreateXMat <- function(xString, n, d, xMats){
   return(x)
 }
 
+validateParameterList <- function(composite, stationary, noise, d,
+                                  n, nPred, x, xPred){
+
+
+
+}
 

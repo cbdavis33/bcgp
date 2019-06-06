@@ -40,20 +40,133 @@
 #' @export
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, n = 15, nPred = 100, d = 1,
-                                parameters = createParameterList(composite,
-                                                                 stationary,
-                                                                 noise, d),
-                                ...){
+                                parameters, ...){
   xMats <- list(...)
   xMatsNames <- names(xMats)
   if("xPred" %in% xMatsNames && !("x" %in% xMatsNames)){
     stop("If you specify 'xPred', you must also specify 'x',")
   }
 
+  if("x" %in% xMatsNames){
+    n <- nrow(xMats[["x"]])
+    d <- ncol(xMats[["x"]])
+  }
+  if("xPred" %in% xMatsNames){
+    nPred <- nrow(xMats[["xPred"]])
+  }
+
   x <- validateAndCreateXMat("x", n, d, xMats)
   xPred <- validateAndCreateXMat("xPred", nPred, d, xMats)
 
+  if(missing(parameters)){
+    parameters <- createParameterList(composite = composite,
+                                      stationary = stationary,
+                                      noise = noise, d = d,
+                                      n = n, nPred = nPred,
+                                      x = x, xPred = xPred)
+  }else{
+    validateParameterList(composite = composite,
+                          stationary = stationary,
+                          noise = noise, d = d,
+                          n = n, nPred = nPred,
+                          x = x, xPred = xPred)
+  }
 
-  # toReturn <- list(x = x, xPred = xPred)
-  # return(toReturn)
+  data <- simulateY(x = x, xPred = xPred, parameters = parameters,
+                    stationary = stationary, composite = composite)
+
+  toReturn <- list(x = x, y = data$y,
+                   xPred = xPred, yPred = data$yPred,
+                   parameters = parameters)
+  return(toReturn)
+}
+
+simulateY <- function(x, xPred, parameters,
+                      stationary, composite){
+
+  if(composite == TRUE){
+    if(stationary == FALSE){
+      data <- simulateCompNS(x, xPred, parameters)
+    }else{ # composite == TRUE, stationary == TRUE
+      data <- simulateCompS(x, xPred, parameters)
+    }
+  }else{
+    if(stationary == FALSE){
+      data <- simulateNonCompNS(x, xPred, parameters)
+    }else{ # composite == TRUE, stationary == TRUE
+      data <- simulateNonCompS(x, xPred, parameters)
+    }
+  }
+  return(data)
+}
+
+simulateCompNS <- function(x, xPred, parameters){
+
+  n <- nrow(x)
+  nPred <- nrow(xPred)
+
+  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
+  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
+  R <- combineCorMatsR(parameters$w, G, L)
+  C <- getCovMatNSR(c(parameters$V, parameters$VPred), R, parameters$sig2eps)
+
+  YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
+
+  data <- list(y = YAndYPred[1:n],
+               yPred = YAndYPred[-(1:n)])
+
+  return(data)
+
+}
+
+simulateCompS <- function(x, xPred, parameters){
+
+  n <- nrow(x)
+  nPred <- nrow(xPred)
+
+  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
+  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
+  R <- combineCorMatsR(parameters$w, G, L)
+  C <- getCovMatSR(parameters$sigma2, R, parameters$sig2eps)
+
+  YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
+
+  data <- list(y = YAndYPred[1:n],
+               yPred = YAndYPred[-(1:n)])
+
+  return(data)
+
+}
+
+simulateNonCompNS <- function(x, xPred, parameters){
+
+  n <- nrow(x)
+  nPred <- nrow(xPred)
+
+  R <- getCorMatR(rbind(x, xPred), parameters$rho)
+  C <- getCovMatNSR(c(parameters$V, parameters$VPred), R, parameters$sig2eps)
+
+  YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
+
+  data <- list(y = YAndYPred[1:n],
+               yPred = YAndYPred[-(1:n)])
+
+  return(data)
+}
+
+simulateNonCompS <- function(x, xPred, parameters){
+
+  n <- nrow(x)
+  nPred <- nrow(xPred)
+
+  R <- getCorMatR(rbind(x, xPred), parameters$rho)
+  C <- getCovMatNSR(c(parameters$V, parameters$VPred), R, parameters$sig2eps)
+
+  YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
+
+  data <- list(y = YAndYPred[1:n],
+               yPred = YAndYPred[-(1:n)])
+
+  return(data)
+
 }

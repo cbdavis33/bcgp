@@ -5,8 +5,7 @@
 \title{Simulate from the model}
 \usage{
 simulate_from_model(composite = TRUE, stationary = FALSE,
-  noise = FALSE, n = 15, nPred = 100, d = 1,
-  parameters = createParameterList(composite, stationary, noise, d), ...)
+  noise = FALSE, n = 15, nPred = 100, d = 1, parameters, ...)
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process

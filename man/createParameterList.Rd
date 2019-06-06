@@ -22,8 +22,13 @@ should be \code{TRUE}. Defaults to \code{FALSE}}
 
 \item{d}{An integer giving the dimension of the data.}
 
-\item{...}{Argument \code{n} that is only necessary for non-stationary
-processes}
+\item{...}{Arguments \code{n}, \code{nPred}, \code{x}, and \code{xPred} that
+are only necessary for non-stationary processes. If left unspecified, lack of
+input for \code{n} and \code{nPred} will throw an error. If \code{x} and
+\code{xPred} are left unspecified, these matrices will be randomly generated
+on \eqn{[0, 1]^d}. If specified, \code{x} will be scaled to \eqn{[0, 1]^d}
+before variance parameters are generated, and \code{xPred} will be scaled
+based on the scaling of {x} before variance parameters are generated.}
 }
 \description{
 \code{createParameterList} returns a list that contains randomly generated
@@ -37,8 +42,9 @@ before a call to \code{simulate_from_model}. The user can modify the list of
 parameter values if desired.
 }
 \examples{
-createParameterList()
 createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE, d = 1)
+createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1,
+                    n = 15, nPred = 100)
 }
 \seealso{
 \code{\link{simulate_from_model}}
