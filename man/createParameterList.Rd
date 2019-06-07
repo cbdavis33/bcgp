@@ -5,7 +5,7 @@
 \title{Create a list with random parameter values.}
 \usage{
 createParameterList(composite = TRUE, stationary = FALSE,
-  noise = FALSE, d = 1, ...)
+  noise = FALSE, d = 1, ..., n = 15, nPred = 100)
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process

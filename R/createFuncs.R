@@ -115,21 +115,68 @@ createInits  <- function(x, priors = createPriors(x), chains = 4){
 #'                     n = 15, nPred = 100)
 #' @export
 createParameterList <- function(composite = TRUE, stationary = FALSE,
-                                noise = FALSE, d = 1, ...){
+                                noise = FALSE, d = 1, ...,
+                                n = 15, nPred = 100){
 
   xMats <- list(...)
   if(composite == TRUE){
     if(stationary == FALSE){
-      if(!("x" %in% names(xMats) && "xPred" %in% names(xMats))){
-        stop("'x' and 'xPred' matrices must be specified to create nonstationary
-             parameters.")
+      if(!("x" %in% names(xMats)) && "xPred" %in% names(xMats)){
+        stop("Please don't specify 'xPred' without specifying 'x' also.")
       }
-      paramList <- createParamCompNS(d, xMats[["x"]], xMats[["xPred"]])
+
+      if(!("x" %in% names(xMats))){
+        if(d == 1){
+          x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
+        }else{
+          x <- createXMat(n, d)
+          xPred <- createXMat(nPred, d)
+        }
+      }else if("x" %in% names(xMats) && !("xPred" %in% names(xMats))){
+        x <- matrix(scaleX(xMats[["x"]]), ncol = d)
+        if(d == 1){
+          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
+        }else{
+          xPred <- createXMat(nPred, d)
+        }
+      }else{
+        x <- scaleX(xMats[["x"]])
+        xPred <- sapply(1:d, function(t)(xMats[["xPred"]][, t] -
+                                           attr(x, "scaled:minimum")[t])/
+                          attr(x, "scaled:range")[t])
+      }
+      paramList <- createParamCompNS(d, x, xPred)
     }else{ # composite == TRUE, stationary == TRUE
       paramList <- createParamCompS(d)
     }
   }else{
     if(stationary == FALSE){
+      if(!("x" %in% names(xMats)) && "xPred" %in% names(xMats)){
+        stop("Please don't specify 'xPred' without specifying 'x' also.")
+      }
+
+      if(!("x" %in% names(xMats))){
+        if(d == 1){
+          x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
+        }else{
+          x <- createXMat(n, d)
+          xPred <- createXMat(nPred, d)
+        }
+      }else if("x" %in% names(xMats) && !("xPred" %in% names(xMats))){
+        x <- matrix(scaleX(xMats[["x"]]), ncol = d)
+        if(d == 1){
+          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
+        }else{
+          xPred <- createXMat(nPred, d)
+        }
+      }else{
+        x <- scaleX(xMats[["x"]])
+        xPred <- sapply(1:d, function(t)(xMats[["xPred"]][, t] -
+                                           attr(x, "scaled:minimum")[t])/
+                          attr(x, "scaled:range")[t])
+      }
       paramList <-createParamNonCompNS(d, x, xPred)
     }else{ # composite == TRUE, stationary == TRUE
       paramList <- createParamNonCompS(d)
