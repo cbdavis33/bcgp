@@ -126,7 +126,7 @@ getCovMatNSR <- function(V, R, sig2eps){
 #' getCovMatSR(V, R, sig2)
 #' @export
 getCovMatSR <- function(sigma2, R, sigma2eps){
-  sigma2 * R + diag(sigma2eps, nrow = 4)
+  sigma2 * R + diag(sigma2eps, nrow = nrow(R))
 }
 
 #' Combine correlation matrices.

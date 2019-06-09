@@ -17,17 +17,13 @@
 #' @param noise If the data should be noise-free (such as from a deterministic
 #' computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
 #' should be \code{TRUE}. Defaults to \code{FALSE}
-#' @param n An integer giving the number of training data locations.
-#' @param nPred An integer giving the number of test data locations.
 #' @param d An integer giving the dimension of the data.
+#' @param n An integer giving the desired number of training data locations.
+#' @param nPred An integer giving the desired number of test data locations.
 #' @param parameters A list containing desired parameter values. If missing,
 #' then parameter values will be drawn at random. A call to
 #' \code{createParameterList()} will assist in the correct creation of this
 #' list.
-#' @param ... Arguments \code{x} and \code{xPred}. If left unspecified, these
-#' matrices will be randomly generated on \eqn{[0, 1]^d}. If specified, \code{x}
-#' will be scaled to \eqn{[0, 1]^d} before data is generated, and \code{xPred}
-#' will be scaled based on the scaling of {x}.
 #' @return A list with elements \code{x} (an \emph{n x d} matrix), \code{y} (a
 #' vector of length \emph{n}), \code{xPred} (an \emph{nPred x d} matrix), and
 #' \code{yPred} (a vector of length \emph{nPred}) corresponding to training
@@ -36,65 +32,31 @@
 #' used to simulate the data.
 #' @seealso \code{\link{createParameterList}}
 #' @examples
-#' simulate_from_model(stationary = FALSE, composite = TRUE, noise = FALSE)
+#' simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 #' @export
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
-                                noise = FALSE, n = 15, nPred = 100, d = 1,
-                                parameters, ...){
-  xMats <- list(...)
-  xMatsNames <- names(xMats)
-  if("xPred" %in% xMatsNames && !("x" %in% xMatsNames)){
-    stop("If you specify 'xPred', you must also specify 'x',")
-  }
+                                noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
+                                parameters = createParameterList(composite,
+                                                                 stationary,
+                                                                 noise, d)){
 
-  if("x" %in% xMatsNames){
-    nx <- nrow(xMats[["x"]])
-    dx <- ncol(xMats[["x"]])
-    if(nx != n){
-      warning(paste0("You have specified n = ", n, ", but x has ", nx,
-                     " rows. Changing n to ", nx, "."))
-      n <- nx
-    }
-    if(dx != d){
-      warning(paste0("You have specified d = ", d, ", but x has ", dx,
-                     " columns. Changing d to ", dx, "."))
-      d <- dx
-    }
-  }
-  if("xPred" %in% xMatsNames){
-    nPredx <- nrow(xMats[["xPred"]])
-    if(nPredx != nPred){
-    warning(paste0("You have specified nPred = ", nPred, ", but nPred has ",
-                   nPredx, " rows. Changing nPred to ", nPredx, "."))
-      nPred <- nPredx
-    }
-  }
-
-  xMatrices <- validateAndCreateXMats(xMats, n, d, nPred)
+  xMatrices <- createXAndXPred(d, n, nPred)
   x <- xMatrices$x
   xPred <- xMatrices$xPred
   rm(xMatrices)
 
-  if(missing(parameters)){
-    parameters <- createParameterList(composite = composite,
-                                      stationary = stationary,
-                                      noise = noise, d = d,
-                                      n = n, nPred = nPred,
-                                      x = x, xPred = xPred)
-  }else{
-    validateParameterList(composite = composite,
-                          stationary = stationary,
-                          noise = noise, d = d,
-                          n = n, nPred = nPred,
-                          x = x, xPred = xPred)
-  }
+  validateParameterList(parameters = parameters,
+                        composite = composite,
+                        stationary = stationary,
+                        d = d)
+
 
   data <- simulateY(x = x, xPred = xPred, parameters = parameters,
                     stationary = stationary, composite = composite)
 
   toReturn <- list(x = x, y = data$y,
                    xPred = xPred, yPred = data$yPred,
-                   parameters = parameters)
+                   parameters = data$parameters)
   return(toReturn)
 }
 
@@ -125,12 +87,20 @@ simulateCompNS <- function(x, xPred, parameters){
   G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
   L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
   R <- combineCorMatsR(parameters$w, G, L)
-  C <- getCovMatNSR(c(parameters$V, parameters$VPred), R, parameters$sig2eps)
 
+  K <- parameters$sig2V * getCorMatR(rbind(x, xPred), parameters$rhoV) +
+    1e-10*diag(n + nPred)
+  VAndVPred <- exp(MASS::mvrnorm(1, parameters$muV*rep(1, n + nPred), K))
+  C <- getCovMatNSR(VAndVPred, R, parameters$sig2eps)
+  diag(C)[-(1:n)] <- diag(C)[-(1:n)] - parameters$sig2eps
   YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
 
+  parameters$V <- VAndVPred[1:n]
+  parameters$VPred <- VAndVPred[-(1:n)]
+
   data <- list(y = YAndYPred[1:n],
-               yPred = YAndYPred[-(1:n)])
+               yPred = YAndYPred[-(1:n)],
+               parameters = parameters)
 
   return(data)
 
@@ -145,11 +115,13 @@ simulateCompS <- function(x, xPred, parameters){
   L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
   R <- combineCorMatsR(parameters$w, G, L)
   C <- getCovMatSR(parameters$sigma2, R, parameters$sig2eps)
+  diag(C)[-(1:n)] <- diag(C)[-(1:n)] - parameters$sig2eps
 
   YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
 
   data <- list(y = YAndYPred[1:n],
-               yPred = YAndYPred[-(1:n)])
+               yPred = YAndYPred[-(1:n)],
+               parameters = parameters)
 
   return(data)
 
@@ -161,12 +133,19 @@ simulateNonCompNS <- function(x, xPred, parameters){
   nPred <- nrow(xPred)
 
   R <- getCorMatR(rbind(x, xPred), parameters$rho)
-  C <- getCovMatNSR(c(parameters$V, parameters$VPred), R, parameters$sig2eps)
+  K <- parameters$sig2V * getCorMatR(rbind(x, xPred), parameters$rhoV) +
+    1e-10*diag(n + nPred)
+  VAndVPred <- exp(MASS::mvrnorm(1, parameters$muV*rep(1, n + nPred), K))
+  C <- getCovMatNSR(VAndVPred, R, parameters$sig2eps)
+  diag(C)[-(1:n)] <- diag(C)[-(1:n)] - parameters$sig2eps
 
   YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
+  parameters$V <- VAndVPred[1:n]
+  parameters$VPred <- VAndVPred[-(1:n)]
 
   data <- list(y = YAndYPred[1:n],
-               yPred = YAndYPred[-(1:n)])
+               yPred = YAndYPred[-(1:n)],
+               parameters = parameters)
 
   return(data)
 }
@@ -177,12 +156,14 @@ simulateNonCompS <- function(x, xPred, parameters){
   nPred <- nrow(xPred)
 
   R <- getCorMatR(rbind(x, xPred), parameters$rho)
-  C <- getCovMatNSR(c(parameters$V, parameters$VPred), R, parameters$sig2eps)
+  C <- getCovMatSR(parameters$sigma2, R, parameters$sig2eps)
+  diag(C)[-(1:n)] <- diag(C)[-(1:n)] - parameters$sig2eps
 
   YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
 
   data <- list(y = YAndYPred[1:n],
-               yPred = YAndYPred[-(1:n)])
+               yPred = YAndYPred[-(1:n)],
+               parameters = parameters)
 
   return(data)
 

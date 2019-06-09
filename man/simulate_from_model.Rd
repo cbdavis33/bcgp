@@ -5,7 +5,8 @@
 \title{Simulate from the model}
 \usage{
 simulate_from_model(composite = TRUE, stationary = FALSE,
-  noise = FALSE, n = 15, nPred = 100, d = 1, parameters, ...)
+  noise = FALSE, d = 1, n = 15 * d, nPred = 100 * d,
+  parameters = createParameterList(composite, stationary, noise, d))
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process
@@ -20,21 +21,16 @@ process is \eqn{\sigma^2(x)}, and if \code{TRUE}, the variance is
 computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
 should be \code{TRUE}. Defaults to \code{FALSE}}
 
-\item{n}{An integer giving the number of training data locations.}
-
-\item{nPred}{An integer giving the number of test data locations.}
-
 \item{d}{An integer giving the dimension of the data.}
+
+\item{n}{An integer giving the desired number of training data locations.}
+
+\item{nPred}{An integer giving the desired number of test data locations.}
 
 \item{parameters}{A list containing desired parameter values. If missing,
 then parameter values will be drawn at random. A call to
 \code{createParameterList()} will assist in the correct creation of this
 list.}
-
-\item{...}{Arguments \code{x} and \code{xPred}. If left unspecified, these
-matrices will be randomly generated on \eqn{[0, 1]^d}. If specified, \code{x}
-will be scaled to \eqn{[0, 1]^d} before data is generated, and \code{xPred}
-will be scaled based on the scaling of {x}.}
 }
 \value{
 A list with elements \code{x} (an \emph{n x d} matrix), \code{y} (a
@@ -55,7 +51,7 @@ responses, test locations, and test responses, respectively, and element
 \code{parameters}, which contains the parameters used to simulate the data.
 }
 \examples{
-simulate_from_model(stationary = FALSE, composite = TRUE, noise = FALSE)
+simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 }
 \seealso{
 \code{\link{createParameterList}}

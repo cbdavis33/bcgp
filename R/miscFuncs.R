@@ -84,76 +84,72 @@ x1Ainvx2 <- function(x1, A, x2){
   return(xAinvy)
 }
 
-validateXMatrix <- function(x, n, d){
-  if(nrow(x) != n) stop("Specified matrix has incorrect number of rows.")
-  if(ncol(x) != d) stop("Specified matrix has incorrect number of columns.")
+validateParameterList <- function(parameters, composite, stationary, d){
+
+  if(composite == TRUE){
+    if(stationary == FALSE){
+      validateParamsCompNS(parameters, d)
+    }else{ # composite == TRUE, stationary == TRUE
+      validateParamsCompS(parameters, d)
+    }
+  }else{
+    if(stationary == FALSE){
+      validateParamsNonCompNS(parameters, d)
+    }else{ # composite == TRUE, stationary == TRUE
+      validateParamsNonCompS(parameters, d)
+    }
+  }
+
   return(NULL)
 }
 
-# validateAndCreateXMat <- function(xString, n, d, xMats){
-#
-#   if(xString %in% names(xMats)){
-#     validateXMatrix(xMats[[xString]], n, d)
-#     x <- matrix(scaleX(xMats[[xString]]), ncol = d)
-#   }else{
-#     if(d == 1){
-#       x <- matrix(seq(0, 1, length.out = n), ncol = 1)
-#     }else{
-#       if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
-#         x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
-#       }else{
-#         x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
-#       }
-#     }
-#   }
-#   return(x)
-# }
+validateParamsCompNS <- function(parameters, d){
 
-validateAndCreateXMats <- function(xMats, n, d, nPred){
-
-  if(!("x" %in% names(xMats))){
-    if(d == 1){
-      x <- matrix(seq(0, 1, length.out = n), ncol = 1)
-      xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
-    }else{
-      x <- createXMat(n, d)
-      xPred <- createXMat(nPred, d)
-    }
-  }else if("x" %in% names(xMats) && !("xPred" %in% names(xMats))){
-    x <- matrix(scaleX(xMats[["x"]]), ncol = d)
-    if(d == 1){
-      xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
-    }else{
-      xPred <- createXMat(nPred, d)
-    }
-  }else{
-    x <- scaleX(xMats[["x"]])
-    xPred <- sapply(1:d, function(t)(xMats[["xPred"]][, t] -
-                                       attr(x, "scaled:minimum")[t])/
-                      attr(x, "scaled:range")[t])
-  }
-
-  # if("x" %in% names(xMats)){
-  #   x <- matrix(scaleX(xMats[[xString]]), ncol = d)
-  # }else{
-  #   if(d == 1){
-  #     x <- matrix(seq(0, 1, length.out = n), ncol = 1)
-  #   }else{
-  #     if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
-  #       x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
-  #     }else{
-  #       x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
-  #     }
-  #   }
-  # }
-  toReturn <- list(x = x, xPred = xPred)
-  return(toReturn)
+  with(parameters, stopifnot(length(rhoG) == d,
+                             length(rhoL) == d,
+                             length(rhoV) == d,
+                             is.numeric(beta0),
+                             (w >= 0 & w <= 1),
+                             all(0 <= rhoG & rhoG <= 1),
+                             all(0 <= rhoL & rhoL <= rhoG),
+                             is.numeric(muV),
+                             (sig2V >= 0),
+                             all(0 <= rhoV & rhoV <= 1),
+                             sig2eps >= 0))
+  return(NULL)
 }
 
-validateParameterList <- function(composite, stationary, noise, d,
-                                  n, nPred, x, xPred){
+validateParamsCompS <- function(parameters, d){
 
-
-
+  with(parameters, stopifnot(length(rhoG) == d,
+                             length(rhoL) == d,
+                             is.numeric(beta0),
+                             (w >= 0 & w <= 1),
+                             all(0 <= rhoG & rhoG <= 1),
+                             all(0 <= rhoL & rhoL <= rhoG),
+                             (sigma2 >= 0),
+                             sig2eps >= 0))
+  return(NULL)
 }
 
+validateParamsNonCompNS <- function(parameters, d){
+
+  with(parameters, stopifnot(length(rho) == d,
+                             is.numeric(beta0),
+                             all(0 <= rho & rho <= 1),
+                             is.numeric(muV),
+                             (sig2V >= 0),
+                             all(0 <= rhoV & rhoV <= 1),
+                             sig2eps >= 0))
+  return(NULL)
+}
+
+validateParamsNonCompS <- function(parameters, d){
+
+  with(parameters, stopifnot(length(rho) == d,
+                             is.numeric(beta0),
+                             all(0 <= rho & rho <= 1),
+                             (sigma2 >= 0),
+                             sig2eps >= 0))
+  return(NULL)
+}
