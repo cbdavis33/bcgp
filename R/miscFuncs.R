@@ -95,7 +95,7 @@ validateParameterList <- function(parameters, composite, stationary, d){
   }else{
     if(stationary == FALSE){
       validateParamsNonCompNS(parameters, d)
-    }else{ # composite == TRUE, stationary == TRUE
+    }else{ # composite == FALSE, stationary == TRUE
       validateParamsNonCompS(parameters, d)
     }
   }
@@ -135,6 +135,7 @@ validateParamsCompS <- function(parameters, d){
 validateParamsNonCompNS <- function(parameters, d){
 
   with(parameters, stopifnot(length(rho) == d,
+                             length(rhoV) == d,
                              is.numeric(beta0),
                              all(0 <= rho & rho <= 1),
                              is.numeric(muV),

@@ -66,12 +66,19 @@ with(blah, plot(x, y, pch = 16))
 with(blah, points(xPred, yPred, pch = 16, col = "red"))
 
 
-blah <- simulate_from_model(d = 2, nPred = 800)
-with(blah, plot(x[,1], x[, 2], pch = 16))
-with(blah, points(xPred[, 1], xPred[, 2], pch = 16, col = "red"))
+
+params <- createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE,
+                              d = 2)
+params$rho <- c(0.01, 1)
+blah <- simulate_from_model(composite = FALSE, stationary = TRUE,
+                            d = 2, nPred = 800, parameters = params)
+# with(blah, plot(x[,1], x[, 2], pch = 16))
+# with(blah, points(xPred[, 1], xPred[, 2], pch = 16, col = "red"))
 
 dataToPlot <- data.frame(x1 = blah$x[,1], x2 = blah$x[,2], y = blah$y)
 dataToPlot <- data.frame(x1 = blah$xPred[,1], x2 = blah$xPred[,2], y = blah$yPred)
 ggplot(dataToPlot, aes(x = x1, y = x2)) +
   theme_classic() +
   geom_point(aes(color = y))
+
+
