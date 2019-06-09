@@ -18,7 +18,7 @@ with(blah, plot(x, y, pch = 16))
 with(blah, points(xPred, yPred, pch = 16, col = "red"))
 
 
-blah <- simulate_from_model(stationary = TRUE, composite = FALSE)
+blah <- simulate_from_model(stationary = TRUE, composite = FALSE, n = 8)
 with(blah, plot(x, y, pch = 16))
 with(blah, points(xPred, yPred, pch = 16, col = "red"))
 

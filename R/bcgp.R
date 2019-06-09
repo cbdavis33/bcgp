@@ -114,8 +114,8 @@ bcgp  <- function(x, y, composite = TRUE, stationary = FALSE,
 
     if(ANSWER != "y"){
       cat("Scaling the data. Thank you for being rational.")
-      yScaled <- scale(y, center = TRUE, scale = TRUE)
-      xScaled <- scaleX(x)
+      yIn <- scale(y, center = TRUE, scale = TRUE)
+      xIn <- scaleX(x)
     }else{
       cat("Proceeding with unscaled data. You've been warned.")
       ## TODO: Add attributes for unscaled data? Might not be necessary.
@@ -123,29 +123,33 @@ bcgp  <- function(x, y, composite = TRUE, stationary = FALSE,
       stop("I'm not proceeding for now.")
     }
   }else{
-    yScaled <- scale(y, center = TRUE, scale = TRUE)
-    xScaled <- scaleX(x)
+    yIn <- scale(y, center = TRUE, scale = TRUE)
+    xIn <- scaleX(x)
   }
 
-  if(stationary == FALSE){
+  algorithm = match.arg(algorithm)
+
+  if(algorithm == "Stan"){
     if(composite == TRUE){
+      if(stationary == FALSE){
 
-    }else{ ## composite == FALSE
+      }else{ # composite == TRUE, stationary == TRUE
 
-    }
-  }else{   ## stationary == TRUE
-    if(composite == TRUE){
+      }
+    }else{
+      if(stationary == FALSE){
 
-    }else{ ## composite == FALSE
+      }else{ # composite == FALSE, stationary == TRUE
 
+      }
     }
   }
 
-  bfit <- bcgpMCMC(x = xScaled, y = yScaled, priors = priorList, inits = initList,
+  bfit <- bcgpMCMC(x = xIn, y = yIn, priors = priorList, inits = initList,
                    numUpdates, numAdapt,
                    burnin, nmcmc, chains = chains, cores = cores)
 
-  slot(bfit, "scale") <- xScaled
+  slot(bfit, "scale") <- xIn
   return(bfit)
 
 }
