@@ -107,11 +107,11 @@ createXMat <- function(n, d){
 #'
 #' This creates a list that contains randomly generated parameter values for a
 #' model corresponding to inputs \code{composite}, \code{stationary},
-#' \code{noise}, \code{d}. This function is meant to set up the parameters
+#' \code{noise}, and \code{d}. This function is meant to set up the parameters
 #' before a call to \code{simulate_from_model}. The user can modify the list of
 #' parameter values if desired. If a non-stationary model is desired, the
 #' parameters that define the variance process,
-#' (\eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}), will be returned and can then be
+#' \eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}, will be returned and can then be
 #' modified, but the variance process itself will not be returned and cannot be
 #' specified.
 #'
@@ -126,13 +126,15 @@ createXMat <- function(n, d){
 #' should be \code{TRUE}. Defaults to \code{FALSE}
 #' @param d An integer giving the dimension of the data.
 #' @return A list of randomly-generated parameter values corresponding to the
-#' BCGP model described by \code{composite}, \code{stationary}, and
-#' \code{noise}.
+#' BCGP model described by \code{composite}, \code{stationary}, \code{noise},
+#' and \code{d}.
 #' @family preprocessing functions
 #' @seealso \code{\link{simulate_from_model}}
 #' @examples
-#' createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE, d = 1)
-#' createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1)
+#' createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE,
+#'                     d = 2)
+#' createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE,
+#'                     d = 1)
 #' @export
 createParameterList <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, d = 1){
@@ -146,11 +148,11 @@ createParameterList <- function(composite = TRUE, stationary = FALSE,
   }else{
     if(stationary == FALSE){
       paramList <-createParamNonCompNS(d)
-    }else{ # composite == TRUE, stationary == TRUE
+    }else{ # composite == FALSE, stationary == TRUE
       paramList <- createParamNonCompS(d)
     }
   }
-  paramList$sig2eps <- ifelse(noise == TRUE, rgamma(1, 0.1, scale = 0.1), 0)
+  paramList$sig2eps <- ifelse(noise == TRUE, rgamma(1, 2, scale = 0.01), 0)
   return(paramList)
 }
 

@@ -24,8 +24,8 @@ should be \code{TRUE}. Defaults to \code{FALSE}}
 }
 \value{
 A list of randomly-generated parameter values corresponding to the
-BCGP model described by \code{composite}, \code{stationary}, and
-\code{noise}.
+BCGP model described by \code{composite}, \code{stationary}, \code{noise},
+and \code{d}.
 }
 \description{
 \code{createParameterList} returns a list that contains randomly generated
@@ -34,17 +34,19 @@ parameter values.
 \details{
 This creates a list that contains randomly generated parameter values for a
 model corresponding to inputs \code{composite}, \code{stationary},
-\code{noise}, \code{d}. This function is meant to set up the parameters
+\code{noise}, and \code{d}. This function is meant to set up the parameters
 before a call to \code{simulate_from_model}. The user can modify the list of
 parameter values if desired. If a non-stationary model is desired, the
 parameters that define the variance process,
-(\eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}), will be returned and can then be
+\eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}, will be returned and can then be
 modified, but the variance process itself will not be returned and cannot be
 specified.
 }
 \examples{
-createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE, d = 1)
-createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1)
+createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE,
+                    d = 2)
+createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE,
+                    d = 1)
 }
 \seealso{
 \code{\link{simulate_from_model}}

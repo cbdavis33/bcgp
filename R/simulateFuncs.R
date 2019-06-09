@@ -65,21 +65,21 @@ simulateY <- function(x, xPred, parameters,
 
   if(composite == TRUE){
     if(stationary == FALSE){
-      data <- simulateCompNS(x, xPred, parameters)
+      data <- simulateYCompNS(x, xPred, parameters)
     }else{ # composite == TRUE, stationary == TRUE
-      data <- simulateCompS(x, xPred, parameters)
+      data <- simulateYCompS(x, xPred, parameters)
     }
   }else{
     if(stationary == FALSE){
-      data <- simulateNonCompNS(x, xPred, parameters)
-    }else{ # composite == TRUE, stationary == TRUE
-      data <- simulateNonCompS(x, xPred, parameters)
+      data <- simulateYNonCompNS(x, xPred, parameters)
+    }else{ # composite == FALSE, stationary == TRUE
+      data <- simulateYNonCompS(x, xPred, parameters)
     }
   }
   return(data)
 }
 
-simulateCompNS <- function(x, xPred, parameters){
+simulateYCompNS <- function(x, xPred, parameters){
 
   n <- nrow(x)
   nPred <- nrow(xPred)
@@ -88,9 +88,11 @@ simulateCompNS <- function(x, xPred, parameters){
   L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
   R <- combineCorMatsR(parameters$w, G, L)
 
-  K <- parameters$sig2V * getCorMatR(rbind(x, xPred), parameters$rhoV) +
-    1e-10*diag(n + nPred)
+  K <- getCovMatSR(parameters$sig2V,
+                   R = getCorMatR(rbind(x, xPred), parameters$rhoV),
+                   1e-10)
   VAndVPred <- exp(MASS::mvrnorm(1, parameters$muV*rep(1, n + nPred), K))
+
   C <- getCovMatNSR(VAndVPred, R, parameters$sig2eps)
   diag(C)[-(1:n)] <- diag(C)[-(1:n)] - parameters$sig2eps
   YAndYPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), C)
@@ -106,7 +108,7 @@ simulateCompNS <- function(x, xPred, parameters){
 
 }
 
-simulateCompS <- function(x, xPred, parameters){
+simulateYCompS <- function(x, xPred, parameters){
 
   n <- nrow(x)
   nPred <- nrow(xPred)
@@ -127,14 +129,15 @@ simulateCompS <- function(x, xPred, parameters){
 
 }
 
-simulateNonCompNS <- function(x, xPred, parameters){
+simulateYNonCompNS <- function(x, xPred, parameters){
 
   n <- nrow(x)
   nPred <- nrow(xPred)
 
   R <- getCorMatR(rbind(x, xPred), parameters$rho)
-  K <- parameters$sig2V * getCorMatR(rbind(x, xPred), parameters$rhoV) +
-    1e-10*diag(n + nPred)
+  K <- getCovMatSR(parameters$sig2V,
+                   R = getCorMatR(rbind(x, xPred), parameters$rhoV),
+                   1e-10)
   VAndVPred <- exp(MASS::mvrnorm(1, parameters$muV*rep(1, n + nPred), K))
   C <- getCovMatNSR(VAndVPred, R, parameters$sig2eps)
   diag(C)[-(1:n)] <- diag(C)[-(1:n)] - parameters$sig2eps
@@ -150,7 +153,7 @@ simulateNonCompNS <- function(x, xPred, parameters){
   return(data)
 }
 
-simulateNonCompS <- function(x, xPred, parameters){
+simulateYNonCompS <- function(x, xPred, parameters){
 
   n <- nrow(x)
   nPred <- nrow(xPred)
