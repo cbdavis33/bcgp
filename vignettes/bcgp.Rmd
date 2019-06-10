@@ -1,0 +1,104 @@
+---
+title: "The BCGP Model"
+author: "Casey Davis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(bcgp)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  comment = NA,
+  fig.align = "center",
+  fig.height = 5,
+  fig.width = 7
+  )
+```
+
+# Introduction - The BCGP Model
+
+The Bayesian Composite Gaussian Process (BCGP) model is meant as a version of
+Gaussian Process (GP) regression. It is intended to predict functions 
+$y(\mathbf{x}), \mathbf{x} \in \mathcal{X}$, that, when viewed as a draw from a 
+stochastic process, exhibit behavior consistent with non-stationarity. The 
+"Composite" part of the BCGP model comes from the decomposition of the random 
+process, $Y(\mathbf{x})$, into a "global" process, $Y_G(\mathbf{x})$, a "local" 
+process, $Y_L(\mathbf{x})$, and an "error" process, $\epsilon(\mathbf{x})$: 
+\begin{equation}
+  Y(\mathbf{x}) = Y_G(\mathbf{x}) + Y_L(\mathbf{x}) + \epsilon(\mathbf{x})
+\end{equation}
+
+The global process is meant to be relatively smooth and to capture the overall 
+trend (similar to, say, a polynomial in linear regression). The fact that we 
+model the trend with a GP allows us to not have to specify a global trend 
+function. The local process is less-smooth and makes local adjustments around the global trend, and the error process accounts for measurement error or acts as a nugget for computational stability.
+
+The model was originally intended to always be composite and non-stationary, and the data was intended to be deterministic output from a computer simulator. The model evolved into having the ability to model data with measurement error, and this R package can fit both stationary and non-stationary and composite and non-composite models and both with and without measurement error. For a non-composite model, the random process is decomposed into 
+\begin{equation}
+  Y(\mathbf{x}) = Y_R(\mathbf{x}) + \epsilon(\mathbf{x})
+\end{equation}
+
+Conditional on model parameters, $\Lambda$, we assume $$ Y(\mathbf{x}) | \Lambda \sim GP\left( \beta_0, C\left(\cdot, \cdot \right)  \right)$$ $\beta_0$ functions as the overall mean, and  $C(\cdot, \cdot)$ is the covariance function. Let $\mathbf{Y} = (y_1, y_2, \ldots, y_n)^\top$ be the observed data, and let $\mathbf{x}$ be the observed data locations in the input space $\mathcal{X}$, a $d$-dimensional finite hyper-rectangle denoted by $[\mathbf{a}, \mathbf{b}]^d = \prod_{j=1}^d[a_j, b_j]$. Let $R(\cdot|\boldsymbol{\rho})$, $\boldsymbol{\rho} = (\rho_1, \ldots, \rho_d)$, $0 \leq \rho_j \leq 1 \;\forall \;j$, be the Gaussian correlation function such that $\mathbf{R}$, an $n \times n$ correlation matrix for the observed data, has elements $$R_{ij} = \prod_{k = 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}$$
+
+## The Non-Stationary Composite Model
+
+As noted above, the composite GP can be written as the sum of a global process, $Y_G(\mathbf{x})$, a local process, $Y_L(\mathbf{x})$, and an error process, $\epsilon(\mathbf{x})$. The non-stationarity is derived from the fact that the variance of this process is expressed as $\sigma^2(\mathbf{x})$ rather than $\sigma^2$. That is, the variance of the process changes across $\mathcal{X}$, rather than the typical, stationary constant variance. The model parameters are $\Lambda = (\beta_0, w, \boldsymbol{\rho_G}, \boldsymbol{\rho_L}, \sigma^2_\epsilon, \sigma^2(\mathbf{x}), \mu_V, \sigma^2_V, \boldsymbol{\rho_V})^\top$. $\beta_0$ is an overall mean, $w$ is a parameter that weights the global and the local process, $\boldsymbol{\rho_G}$ contains the correlation parameters for the global process, $\boldsymbol{\rho_L}$ contains the correlation parameters for the local process, $\sigma^2_\epsilon$ is the measurement error (or nugget) variance, and $\mu_V, \sigma^2_V$, and  $\boldsymbol{\rho_V}$ are the mean, variance, and correlation parameters for $\sigma^2(\mathbf{x})$, which is itself modeled as a log GP.
+ 
+A typical draw from this process might look like this:
+```{r}
+params <- createParameterList()
+params$w <- 0.55
+params$rhoG <- 0.8
+params$rhoL <- 0.1
+params$sig2V <- 0.2
+seed <- sample.int(1e6, size = 1)
+print(seed)
+set.seed(seed)
+nsc <- simulate_from_model(d = 1, n = 12, nPred = 100, parameters = params)
+
+dataY <- data.frame(x = nsc$x, y = nsc$y, type = "observed")
+predY <- data.frame(x = nsc$xPred, y = nsc$yPred, type = "true")
+dataV <- data.frame(x = nsc$x, y = nsc$parameters$V, type = "variance at data")
+predV <- data.frame(x = nsc$xPred, y = nsc$parameters$VPred, 
+                    type = "variance at true")
+
+allY <- dplyr::bind_rows(dataY, predY)
+allV <- dplyr::bind_rows(dataV, predV)
+            
+dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
+  ggplot2::ggtitle("Non-Stationary Composite BCGP Example") +
+  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
+  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
+  ggplot2::theme_classic() +
+  ggplot2::scale_colour_manual(name = NULL, 
+                               values =c('black'='black','red'='red'), 
+                               labels = c('truth','data')) +
+  ggplot2::ylab("Y(x)") + 
+  ggplot2::theme(legend.position = c(0.8, 0.2),
+                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
+                 axis.title = ggplot2::element_text(size = 16)) 
+
+
+sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
+  ggplot2::ggtitle("Non-Stationary Composite BCGP Example") +
+  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
+  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
+  ggplot2::theme_classic() +
+  ggplot2::scale_colour_manual(name = NULL, 
+                               values =c('black'='black','red'='red'), 
+                               labels = c('truth','data')) +
+  ggplot2::ylab("Y(x)") + 
+  ggplot2::theme(legend.position = c(0.8, 0.2),
+                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
+                 axis.title = ggplot2::element_text(size = 16)) 
+
+nsc <- simulate_from_model(d = 1, n = 12, nPred = 100, parameters = params)
+```
+
+
+## Simulating from a BCGP model
