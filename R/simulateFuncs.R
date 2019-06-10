@@ -172,10 +172,21 @@ simulateYNonCompS <- function(x, xPred, parameters){
 
 }
 
-simulateYGLCompNS <- function(x, xPred, parameters){
+simulateYGLCompNS <- function(composite = TRUE, stationary = FALSE,
+                              noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
+                              parameters = createParameterList(composite,
+                                                               stationary,
+                                                               noise, d)){
 
-  n <- nrow(x)
-  nPred <- nrow(xPred)
+  xMatrices <- createXAndXPred(d, n, nPred)
+  x <- xMatrices$x
+  xPred <- xMatrices$xPred
+  rm(xMatrices)
+
+  validateParameterList(parameters = parameters,
+                        composite = composite,
+                        stationary = stationary,
+                        d = d)
 
   G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
   L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
@@ -185,24 +196,28 @@ simulateYGLCompNS <- function(x, xPred, parameters){
                    1e-10)
   VAndVPred <- exp(MASS::mvrnorm(1, parameters$muV*rep(1, n + nPred), K))
 
-  CG <- getCovMatNSR(VAndVPred, G, 0)
-  CL <- getCovMatNSR(VAndVPred, L, 0)
-  cE <- diag(c(rep(parameters$sig2eps, n), rep(0, nPred)))
+  CG <- parameters$w*getCovMatNSR(VAndVPred, G, 0)
+  CL <- (1 - parameters$w)*getCovMatNSR(VAndVPred, L, 0)
+  CE <- diag(c(rep(parameters$sig2eps, n), rep(0, nPred)))
 
   GAndGPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), CG)
   LAndLPred <- MASS::mvrnorm(1, rep(0, n + nPred), CL)
-  eAndePred <- MASS::mvrnorm(1, rep(0, n + nPred), CE)
-  YAndYPred <- YAndYPred + LAndLPred + eAndePred
+  EAndEPred <- MASS::mvrnorm(1, rep(0, n + nPred), CE)
+  YAndYPred <- GAndGPred + LAndLPred + EAndEPred
 
   parameters$V <- VAndVPred[1:n]
   parameters$VPred <- VAndVPred[-(1:n)]
 
-  data <- list(y = YAndYPred[1:n],
+  data <- list(x = x,
+               xPred = xPred,
+               y = YAndYPred[1:n],
                yPred = YAndYPred[-(1:n)],
                yG = GAndGPred[1:n],
                yGPred = GAndGPred[-(1:n)],
                yL = LAndLPred[1:n],
                yLPred = LAndLPred[-(1:n)],
+               yE = EAndEPred[1:n],
+               yEPred = EAndEPred[-(1:n)],
                parameters = parameters)
 
   return(data)

@@ -12,11 +12,11 @@ vignette: >
 ```{r setup, include=FALSE}
 library(bcgp)
 knitr::opts_chunk$set(
-  echo = TRUE,
+  echo = FALSE,
   comment = NA,
   fig.align = "center",
   fig.height = 5,
-  fig.width = 7
+  fig.width = 8
   )
 ```
 
@@ -50,54 +50,57 @@ Conditional on model parameters, $\Lambda$, we assume $$ Y(\mathbf{x}) | \Lambda
 As noted above, the composite GP can be written as the sum of a global process, $Y_G(\mathbf{x})$, a local process, $Y_L(\mathbf{x})$, and an error process, $\epsilon(\mathbf{x})$. The non-stationarity is derived from the fact that the variance of this process is expressed as $\sigma^2(\mathbf{x})$ rather than $\sigma^2$. That is, the variance of the process changes across $\mathcal{X}$, rather than the typical, stationary constant variance. The model parameters are $\Lambda = (\beta_0, w, \boldsymbol{\rho_G}, \boldsymbol{\rho_L}, \sigma^2_\epsilon, \sigma^2(\mathbf{x}), \mu_V, \sigma^2_V, \boldsymbol{\rho_V})^\top$. $\beta_0$ is an overall mean, $w$ is a parameter that weights the global and the local process, $\boldsymbol{\rho_G}$ contains the correlation parameters for the global process, $\boldsymbol{\rho_L}$ contains the correlation parameters for the local process, $\sigma^2_\epsilon$ is the measurement error (or nugget) variance, and $\mu_V, \sigma^2_V$, and  $\boldsymbol{\rho_V}$ are the mean, variance, and correlation parameters for $\sigma^2(\mathbf{x})$, which is itself modeled as a log GP.
  
 A typical draw from this process might look like this:
-```{r}
+```{r nscExample}
 params <- createParameterList()
-params$w <- 0.55
-params$rhoG <- 0.8
-params$rhoL <- 0.1
-params$sig2V <- 0.2
-seed <- sample.int(1e6, size = 1)
-print(seed)
+params$w <- 0.9
+params$w <- 0.7
+params$rhoG <- 0.7
+params$rhoL <- 0.3
+params$muV <- -0.3
+params$sig2V <- 0.5
+params$rhoV <- 0.9
+params$sig2eps <- 0
+seed <- 701687
 set.seed(seed)
-nsc <- simulate_from_model(d = 1, n = 12, nPred = 100, parameters = params)
+nsc <- bcgp:::simulateYGLCompNS(parameters = params)
 
-dataY <- data.frame(x = nsc$x, y = nsc$y, type = "observed")
-predY <- data.frame(x = nsc$xPred, y = nsc$yPred, type = "true")
-dataV <- data.frame(x = nsc$x, y = nsc$parameters$V, type = "variance at data")
-predV <- data.frame(x = nsc$xPred, y = nsc$parameters$VPred, 
-                    type = "variance at true")
+dataY <- data.frame(x = nsc$x, y = nsc$y)
+predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
+predG <- data.frame(x = nsc$xPred, y = nsc$yGPred)
+predL <- data.frame(x = nsc$xPred, y = nsc$yLPred)
+predV <- data.frame(x = nsc$xPred, y = nsc$parameters$VPred)
 
-allY <- dplyr::bind_rows(dataY, predY)
-allV <- dplyr::bind_rows(dataV, predV)
-            
 dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary Composite BCGP Example") +
+  ggplot2::ggtitle("Non-Stationary Composite BCGP") +
   ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
   ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
+  ggplot2::geom_line(data = predG, ggplot2::aes(color = "blue")) +
+  ggplot2::geom_line(data = predL, ggplot2::aes(color = "green")) +
   ggplot2::theme_classic() +
-  ggplot2::scale_colour_manual(name = NULL, 
-                               values =c('black'='black','red'='red'), 
-                               labels = c('truth','data')) +
+  ggplot2::scale_color_manual(name = NULL,
+                              values = c("red" = "red", "black" = "black",
+                                         "blue" = "blue", "green" = "green"),
+                              labels = c("Observed Data", "True Process", 
+                                         "Global Process", "Local Process"),
+                              breaks = c("red", "black", "blue", "green"),
+                              guide = ggplot2::guide_legend(override.aes = list(
+                                linetype = c("blank", "solid", "solid", "solid"),
+                                shape = c(16, NA, NA, NA)))) +
   ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.8, 0.2),
+  ggplot2::theme(legend.position = c(0.5, 0.2),
                  plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                  axis.title = ggplot2::element_text(size = 16)) 
-
 
 sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary Composite BCGP Example") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
+  ggplot2::ggtitle("Non-Stationary BCGP Example:\nVariance Process") +
+  ggplot2::geom_line(data = predV, color = "black") +
   ggplot2::theme_classic() +
-  ggplot2::scale_colour_manual(name = NULL, 
-                               values =c('black'='black','red'='red'), 
-                               labels = c('truth','data')) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.8, 0.2),
-                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
+  ggplot2::ylab(~ paste(sigma ^ 2, "(x)")) +
+  ggplot2::theme(plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                  axis.title = ggplot2::element_text(size = 16)) 
 
-nsc <- simulate_from_model(d = 1, n = 12, nPred = 100, parameters = params)
+gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
+
 ```
 
 
