@@ -171,3 +171,40 @@ simulateYNonCompS <- function(x, xPred, parameters){
   return(data)
 
 }
+
+simulateYGLCompNS <- function(x, xPred, parameters){
+
+  n <- nrow(x)
+  nPred <- nrow(xPred)
+
+  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
+  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
+
+  K <- getCovMatSR(parameters$sig2V,
+                   R = getCorMatR(rbind(x, xPred), parameters$rhoV),
+                   1e-10)
+  VAndVPred <- exp(MASS::mvrnorm(1, parameters$muV*rep(1, n + nPred), K))
+
+  CG <- getCovMatNSR(VAndVPred, G, 0)
+  CL <- getCovMatNSR(VAndVPred, L, 0)
+  cE <- diag(c(rep(parameters$sig2eps, n), rep(0, nPred)))
+
+  GAndGPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), CG)
+  LAndLPred <- MASS::mvrnorm(1, rep(0, n + nPred), CL)
+  eAndePred <- MASS::mvrnorm(1, rep(0, n + nPred), CE)
+  YAndYPred <- YAndYPred + LAndLPred + eAndePred
+
+  parameters$V <- VAndVPred[1:n]
+  parameters$VPred <- VAndVPred[-(1:n)]
+
+  data <- list(y = YAndYPred[1:n],
+               yPred = YAndYPred[-(1:n)],
+               yG = GAndGPred[1:n],
+               yGPred = GAndGPred[-(1:n)],
+               yL = LAndLPred[1:n],
+               yLPred = LAndLPred[-(1:n)],
+               parameters = parameters)
+
+  return(data)
+
+}
