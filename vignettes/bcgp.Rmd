@@ -84,7 +84,8 @@ dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
                                          "Global Process", "Local Process"),
                               breaks = c("red", "black", "blue", "green"),
                               guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid", "solid", "solid"),
+                                linetype = c("blank", "solid", "solid", 
+                                             "solid"),
                                 shape = c(16, NA, NA, NA)))) +
   ggplot2::ylab("Y(x)") + 
   ggplot2::theme(legend.position = c(0.5, 0.2),
@@ -102,6 +103,6 @@ sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
 gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
 ```
-
+Notice that the global process (blue) captures the general trend of the true process (black) while small-scale adjustments around the trend are made by the local process (green). The variance process $\sigma^2(x)$ in this example increases with x, and we can see in the 
 
 ## Simulating from a BCGP model
