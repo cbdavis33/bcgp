@@ -1,5 +1,5 @@
 ---
-title: "Simulate From the BCGP Model"
+title: "Simulate from the BCGP Model"
 author: "Casey Davis"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -16,31 +16,9 @@ knitr::opts_chunk$set(
   comment = NA,
   fig.align = "center",
   fig.height = 5,
-  fig.width = 7
+  fig.width = 8
   )
 ```
 
-## Introduction
-
-The Bayesian Composite Gaussian Process (BCGP) model is meant as a version of
-Gaussian Process (GP) regression. It was originally intended to predict functions $y(\mathbf{x}), \mathbf{x} \in \mathcal{X}$, that, when viewed as a draw from a stochastic process, exhibit behavior consistent with non-stationarity. The "Composite" part of the BCGP model comes from the decomposition of the random process, $Y(\mathbf{x})$, into a "global" process, $Y_G(\mathbf{x})$, a "local" process, $Y_L(\mathbf{x})$, and an "error" process, $\epsilon(\mathbf{x})$: 
-$$Y(\mathbf{x}) = Y_G(\mathbf{x}) + Y_L(\mathbf{x}) + \epsilon(\mathbf{x})$$ 
-The global process is meant to be relatively smooth and to capture the overall 
-trend (similar to, say, a polynomial in linear regression). The fact that we 
-model the trend with a GP allows us to not have to specify a global trend 
-function. The local process is less-smooth and makes local adjustments around the global trend, and the error process accounts for measurement error or acts as a nugget for computational stability.
-
-The model was originally intended to always be composite and non-stationary, and the data was intended to be deterministic output from a computer simulator. The model evolved into having the ability to model data with measurement error, and this R package can fit both stationary and non-stationary and composite and non-composite models and both with and without measurement error.
-
-## The BCGP Model
-
-Conditional on model parameters, $\Lambda$, we assume $$ Y(\mathbf{x}) | \Lambda \sim GP\left( \beta_0, C\left(\cdot, \cdot \right)  \right)$$ $\beta_0$ functions as the overall mean, and  $C\left(\cdot, \cdot \right)  \right)$ is the covariance function. 
-
-In all cases (stationary/non-stationary, composite/non-composite), let $\mathbf{R}$ be an $n \times n$ correlation matrix for the observed data:
-
-
- 
-
-
-
 ## Simulating from a BCGP model
+

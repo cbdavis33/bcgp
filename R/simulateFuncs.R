@@ -172,6 +172,7 @@ simulateYNonCompS <- function(x, xPred, parameters){
 
 }
 
+
 simulateYGLCompNS <- function(composite = TRUE, stationary = FALSE,
                               noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
                               parameters = createParameterList(composite,
@@ -198,6 +199,53 @@ simulateYGLCompNS <- function(composite = TRUE, stationary = FALSE,
 
   CG <- parameters$w*getCovMatNSR(VAndVPred, G, 0)
   CL <- (1 - parameters$w)*getCovMatNSR(VAndVPred, L, 0)
+  CE <- diag(c(rep(parameters$sig2eps, n), rep(0, nPred)))
+
+  GAndGPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), CG)
+  LAndLPred <- MASS::mvrnorm(1, rep(0, n + nPred), CL)
+  EAndEPred <- MASS::mvrnorm(1, rep(0, n + nPred), CE)
+  YAndYPred <- GAndGPred + LAndLPred + EAndEPred
+
+  parameters$V <- VAndVPred[1:n]
+  parameters$VPred <- VAndVPred[-(1:n)]
+
+  data <- list(x = x,
+               xPred = xPred,
+               y = YAndYPred[1:n],
+               yPred = YAndYPred[-(1:n)],
+               yG = GAndGPred[1:n],
+               yGPred = GAndGPred[-(1:n)],
+               yL = LAndLPred[1:n],
+               yLPred = LAndLPred[-(1:n)],
+               yE = EAndEPred[1:n],
+               yEPred = EAndEPred[-(1:n)],
+               parameters = parameters)
+
+  return(data)
+
+}
+
+simulateYGLCompS <- function(composite = TRUE, stationary = TRUE,
+                             noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
+                             parameters = createParameterList(composite,
+                                                              stationary,
+                                                              noise, d)){
+
+  xMatrices <- createXAndXPred(d, n, nPred)
+  x <- xMatrices$x
+  xPred <- xMatrices$xPred
+  rm(xMatrices)
+
+  validateParameterList(parameters = parameters,
+                        composite = composite,
+                        stationary = stationary,
+                        d = d)
+
+  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
+  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
+
+  CG <- parameters$w*getCovMatSR(parameters$sigma2, G, 0)
+  CL <- (1 - parameters$w)*getCovMatSR(parameters$sigma2, L, 0)
   CE <- diag(c(rep(parameters$sig2eps, n), rep(0, nPred)))
 
   GAndGPred <- MASS::mvrnorm(1, rep(parameters$beta0, n + nPred), CG)

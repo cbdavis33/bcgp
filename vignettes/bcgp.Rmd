@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
   )
 ```
 
-# Introduction - The BCGP Model
+## Introduction - The BCGP Model
 
 The Bayesian Composite Gaussian Process (BCGP) model is meant as a version of
 Gaussian Process (GP) regression. It is intended to predict functions 
@@ -38,12 +38,8 @@ trend (similar to, say, a polynomial in linear regression). The fact that we
 model the trend with a GP allows us to not have to specify a global trend 
 function. The local process is less-smooth and makes local adjustments around the global trend, and the error process accounts for measurement error or acts as a nugget for computational stability.
 
-The model was originally intended to always be composite and non-stationary, and the data was intended to be deterministic output from a computer simulator. The model evolved into having the ability to model data with measurement error, and this R package can fit both stationary and non-stationary and composite and non-composite models and both with and without measurement error. For a non-composite model, the random process is decomposed into 
-\begin{equation}
-  Y(\mathbf{x}) = Y_R(\mathbf{x}) + \epsilon(\mathbf{x})
-\end{equation}
-
-Conditional on model parameters, $\Lambda$, we assume $$ Y(\mathbf{x}) | \Lambda \sim GP\left( \beta_0, C\left(\cdot, \cdot \right)  \right)$$ $\beta_0$ functions as the overall mean, and  $C(\cdot, \cdot)$ is the covariance function. Let $\mathbf{Y} = (y_1, y_2, \ldots, y_n)^\top$ be the observed data, and let $\mathbf{x}$ be the observed data locations in the input space $\mathcal{X}$, a $d$-dimensional finite hyper-rectangle denoted by $[\mathbf{a}, \mathbf{b}]^d = \prod_{j=1}^d[a_j, b_j]$. Let $R(\cdot|\boldsymbol{\rho})$, $\boldsymbol{\rho} = (\rho_1, \ldots, \rho_d)$, $0 \leq \rho_j \leq 1 \;\forall \;j$, be the Gaussian correlation function such that $\mathbf{R}$, an $n \times n$ correlation matrix for the observed data, has elements $$R_{ij} = \prod_{k = 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}$$
+Conditional on model parameters, $\boldsymbol{\Lambda}$, we assume $$ Y(\mathbf{x}) | \boldsymbol{\Lambda} \sim GP\left( \beta_0, C\left(\cdot, \cdot \right)  \right)$$ $\beta_0$ functions as the overall mean, and  $C(\cdot, \cdot)$ is the covariance function. Let $\mathbf{Y} = (y_1, y_2, \ldots, y_n)^\top$ be the observed data, and let $\mathbf{x}$ be the observed data locations in the input space $\mathcal{X}$, a $d$-dimensional finite hyper-rectangle denoted by $[\mathbf{a}, \mathbf{b}]^d = \prod_{j=1}^d[a_j, b_j]$. Let $R(\cdot|\boldsymbol{\rho})$, $\boldsymbol{\rho} = (\rho_1, \ldots, \rho_d)$, $0 \leq \rho_j \leq 1 \;\forall \;j$, be the Gaussian correlation function such that $\mathbf{R}$, an $n \times n$ correlation matrix for the observed data, has elements $$R_{ij} = \prod_{k = 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}$$ This parameterization is equivalent to the more typical $$R_{ij} = e^{-\sum_{i=1}^d \theta_i \left( x_{ik} - x_{jk} \right)^2}$$ but the $\boldsymbol\rho$ parameterization eases interpretation: $\rho_i$ can be interpreted as the correlation between $Y(\mathbf{x_1})$ and $Y(\mathbf{x_2})$
+when $\mathbf{x_1}$ and $\mathbf{x_2}$ differ only in the $i^{th}$ by $\frac{1}{4}$ of a unit.
 
 ## The Non-Stationary Composite Model
 
@@ -103,6 +99,18 @@ sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
 gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
 ```
-Notice that the global process (blue) captures the general trend of the true process (black) while small-scale adjustments around the trend are made by the local process (green). The variance process $\sigma^2(x)$ in this example increases with x, and we can see in the 
+Notice that the global process (blue) captures the general trend of the true process (black) while small-scale adjustments around the trend are made by the local process (green). The variance process $\sigma^2(x)$ in this example increases with x, as we can see in the figure on the right, and we see the amplitude of the fluctuation in the global, local, and overall processes increases accordingly.
 
-## Simulating from a BCGP model
+## Other Models Available in this Package
+
+The model was originally intended to always be composite and non-stationary, and the data was intended to be deterministic output from a computer simulator. The model evolved into having the ability to model data with measurement error, and this R package can fit both stationary and non-stationary and composite and non-composite models and both with and without measurement error. 
+
+### Non-Composite Models
+
+For a non-composite model, the random process is decomposed into 
+\begin{equation}
+  Y(\mathbf{x}) = Y_R(\mathbf{x}) + \epsilon(\mathbf{x})
+\end{equation}
+
+#### Non-Composite Non-Stationary
+In the non-stationary model, the variance of the model, $\sigma^2(\mathbf{x})$ varies with $\mathbf{x}$. If this variance is constant, $\sigma^2$, then the model is stationary.
