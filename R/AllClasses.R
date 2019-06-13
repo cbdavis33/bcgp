@@ -1,4 +1,12 @@
 ## Contains all classes for the bcgp package
+setClass(Class = "bcgpsims",
+         slots = c(data = "list",
+                   pred = "list",
+                   parameters = "list",
+                   stationary = "logical",
+                   composite = "logical",
+                   seed = "integer"))
+
 setClass(Class = "bcgppriors",
          slots = c(priors = "list",
                    stationary = "logical",

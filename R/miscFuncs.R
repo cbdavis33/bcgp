@@ -154,3 +154,17 @@ validateParamsNonCompS <- function(parameters, d){
                              sig2eps >= 0))
   return(NULL)
 }
+
+checkSeed <- function(seed){
+
+  if(!is.numeric(seed)){
+    warning("Seed needs to be numeric. Randomly generating seed.")
+    seed <- sample.int(.Machine$integer.max, 1)
+  }else if(is.infinite(seed)){
+    warning("Seed cannot be Inf. Randomly generating seed.")
+    seed <- sample.int(.Machine$integer.max, 1)
+  }else{
+    seed <- as.integer(seed)
+  }
+  return(seed)
+}

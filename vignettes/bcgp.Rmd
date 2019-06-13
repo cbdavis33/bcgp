@@ -36,14 +36,46 @@ process, $Y_L(\mathbf{x})$, and an "error" process, $\epsilon(\mathbf{x})$:
 The global process is meant to be relatively smooth and to capture the overall 
 trend (similar to, say, a polynomial in linear regression). The fact that we 
 model the trend with a GP allows us to not have to specify a global trend 
-function. The local process is less-smooth and makes local adjustments around the global trend, and the error process accounts for measurement error or acts as a nugget for computational stability.
+function. The local process is less-smooth and makes local adjustments around 
+the global trend, and the error process accounts for measurement error or acts 
+as a nugget for computational stability.
 
-Conditional on model parameters, $\boldsymbol{\Lambda}$, we assume $$ Y(\mathbf{x}) | \boldsymbol{\Lambda} \sim GP\left( \beta_0, C\left(\cdot, \cdot \right)  \right)$$ $\beta_0$ functions as the overall mean, and  $C(\cdot, \cdot)$ is the covariance function. Let $\mathbf{Y} = (y_1, y_2, \ldots, y_n)^\top$ be the observed data, and let $\mathbf{x}$ be the observed data locations in the input space $\mathcal{X}$, a $d$-dimensional finite hyper-rectangle denoted by $[\mathbf{a}, \mathbf{b}]^d = \prod_{j=1}^d[a_j, b_j]$. Let $R(\cdot|\boldsymbol{\rho})$, $\boldsymbol{\rho} = (\rho_1, \ldots, \rho_d)$, $0 \leq \rho_j \leq 1 \;\forall \;j$, be the Gaussian correlation function such that $\mathbf{R}$, an $n \times n$ correlation matrix for the observed data, has elements $$R_{ij} = \prod_{k = 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}$$ This parameterization is equivalent to the more typical $$R_{ij} = e^{-\sum_{i=1}^d \theta_i \left( x_{ik} - x_{jk} \right)^2}$$ but the $\boldsymbol\rho$ parameterization eases interpretation: $\rho_i$ can be interpreted as the correlation between $Y(\mathbf{x_1})$ and $Y(\mathbf{x_2})$
-when $\mathbf{x_1}$ and $\mathbf{x_2}$ differ only in the $i^{th}$ by $\frac{1}{4}$ of a unit.
+Conditional on model parameters, $\boldsymbol{\Lambda}$, we assume 
+$$Y(\mathbf{x}) | \boldsymbol{\Lambda} \sim GP\left( \beta_0, 
+C\left(\cdot, \cdot \right)  \right)$$ $\beta_0$ functions as the overall mean, 
+and  $C(\cdot, \cdot)$ is the covariance function. Let 
+$\mathbf{Y} = (y_1, y_2, \ldots, y_n)^\top$ be the observed data, and let 
+$\mathbf{x}$ be the observed data locations in the input space $\mathcal{X}$, a 
+$d$-dimensional finite hyper-rectangle denoted by 
+$[\mathbf{a}, \mathbf{b}]^d = \prod_{j=1}^d[a_j, b_j]$. Let 
+$R(\cdot|\boldsymbol{\rho})$, $\boldsymbol{\rho} = (\rho_1, \ldots, \rho_d)$, 
+$0 \leq \rho_j \leq 1 \;\forall \;j$, be the Gaussian correlation function such
+that $\mathbf{R}$, an $n \times n$ correlation matrix for the observed data, has
+elements 
+$$R_{ij} = \prod_{k = 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}$$ This 
+parameterization is equivalent to the more typical 
+$$R_{ij} = e^{-\sum_{i=1}^d \theta_i \left( x_{ik} - x_{jk} \right)^2}$$ but the
+$\boldsymbol\rho$ parameterization eases interpretation: $\rho_i$ can be 
+interpreted as the correlation between $Y(\mathbf{x_1})$ and $Y(\mathbf{x_2})$
+when $\mathbf{x_1}$ and $\mathbf{x_2}$ differ only in the $i^{th}$ by 
+$\frac{1}{4}$ of a unit.
 
 ## The Non-Stationary Composite Model
 
-As noted above, the composite GP can be written as the sum of a global process, $Y_G(\mathbf{x})$, a local process, $Y_L(\mathbf{x})$, and an error process, $\epsilon(\mathbf{x})$. The non-stationarity is derived from the fact that the variance of this process is expressed as $\sigma^2(\mathbf{x})$ rather than $\sigma^2$. That is, the variance of the process changes across $\mathcal{X}$, rather than the typical, stationary constant variance. The model parameters are $\Lambda = (\beta_0, w, \boldsymbol{\rho_G}, \boldsymbol{\rho_L}, \sigma^2_\epsilon, \sigma^2(\mathbf{x}), \mu_V, \sigma^2_V, \boldsymbol{\rho_V})^\top$. $\beta_0$ is an overall mean, $w$ is a parameter that weights the global and the local process, $\boldsymbol{\rho_G}$ contains the correlation parameters for the global process, $\boldsymbol{\rho_L}$ contains the correlation parameters for the local process, $\sigma^2_\epsilon$ is the measurement error (or nugget) variance, and $\mu_V, \sigma^2_V$, and  $\boldsymbol{\rho_V}$ are the mean, variance, and correlation parameters for $\sigma^2(\mathbf{x})$, which is itself modeled as a log GP.
+As noted above, the composite GP can be written as the sum of a global process, 
+$Y_G(\mathbf{x})$, a local process, $Y_L(\mathbf{x})$, and an error process, 
+$\epsilon(\mathbf{x})$. The non-stationarity is derived from the fact that the 
+variance of this process is expressed as $\sigma^2(\mathbf{x})$ rather than 
+$\sigma^2$. That is, the variance of the process changes across $\mathcal{X}$, 
+rather than the typical, stationary constant variance. The model parameters are 
+$\Lambda = (\beta_0, w, \boldsymbol{\rho_G}, \boldsymbol{\rho_L}, \sigma^2_\epsilon, \sigma^2(\mathbf{x}), \mu_V, \sigma^2_V, \boldsymbol{\rho_V})^\top$. $\beta_0$ is an overall mean, $w$ is a 
+parameter that weights the global and the local process, $\boldsymbol{\rho_G}$ 
+contains the correlation parameters for the global process, 
+$\boldsymbol{\rho_L}$ contains the correlation parameters for the local process,
+$\sigma^2_\epsilon$ is the measurement error (or nugget) variance, and 
+$\mu_V, \sigma^2_V$, and  $\boldsymbol{\rho_V}$ are the mean, variance, and 
+correlation parameters for $\sigma^2(\mathbf{x})$, which is itself modeled as a 
+log GP.
  
 An example of a draw from this process follows:
 ```{r nscExample}
@@ -58,7 +90,10 @@ paramsNSC$rhoV <- 0.9
 paramsNSC$sig2eps <- 0
 seed <- 701687
 set.seed(seed)
-nsc <- bcgp:::simulateYGL(stationary = FALSE, parameters = paramsNSC)
+# nsc <- bcgp:::simulateYGL(stationary = FALSE, parameters = paramsNSC)
+nsc <- simulate_from_model(stationary = FALSE, composite = TRUE,
+                           parameters = paramsNSC, decomposition = TRUE,
+                           seed = seed)
 
 dataY <- data.frame(x = nsc$x, y = nsc$y)
 predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
@@ -99,15 +134,27 @@ sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
 gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
 ```
-Notice that the global process (blue) captures the general trend of the true process (black) while small-scale adjustments around the trend are made by the local process (green). The variance process $\sigma^2(x)$ in this example increases with x, as we can see in the figure on the right, and we see the amplitude of the fluctuation in the global, local, and overall processes increases accordingly.
+Notice that the global process (blue) captures the general trend of the true 
+process (black) while small-scale adjustments around the trend are made by the 
+local process (green). The variance process $\sigma^2(x)$ in this example 
+increases with x, as we can see in the figure on the right, and we see the 
+amplitude of the fluctuation in the global, local, and overall processes 
+increases accordingly.
 
 ## Other Models Available in this Package
 
-The model was originally intended to always be composite and non-stationary, and the data was intended to be deterministic output from a computer simulator. The model evolved into having the ability to model data with measurement error, and this R package can fit both stationary and non-stationary and composite and non-composite models and both with and without measurement error. 
+The model was originally intended to always be composite and non-stationary, and
+the data was intended to be deterministic output from a computer simulator. The 
+model evolved into having the ability to model data with measurement error, and 
+this R package can fit both stationary and non-stationary and composite and 
+non-composite models and both with and without measurement error. 
 
 ### The Stationary Composite Model
 
-In the non-stationary model, the variance of the model, $\sigma^2(\mathbf{x})$ varies with $\mathbf{x}$. In a stationary model, this variance is constant. That is, the variance does not depend on $\mathbf{x}$, so the variance is the constant, $\sigma^2$. An example of a draw from this process follows:
+In the non-stationary model, the variance of the model, $\sigma^2(\mathbf{x})$ 
+varies with $\mathbf{x}$. In a stationary model, this variance is constant. That
+is, the variance does not depend on $\mathbf{x}$, so the variance is the 
+constant, $\sigma^2$. An example of a draw from this process follows:
 ```{r scExample}
 params <- createParameterList(composite = TRUE, stationary = TRUE)
 # params$w <- 0.9
@@ -118,7 +165,10 @@ params$sigma2 <- 1
 params$sig2eps <- 0
 seed <- 485268
 set.seed(seed)
-nsc <- bcgp:::simulateYGL(stationary = TRUE, parameters = params)
+# nsc <- bcgp:::simulateYGL(stationary = TRUE, parameters = params)
+nsc <- simulate_from_model(stationary = TRUE, composite = TRUE,
+                           parameters = params, decomposition = TRUE,
+                           seed = seed)
 
 dataY <- data.frame(x = nsc$x, y = nsc$y)
 predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
@@ -171,7 +221,7 @@ params$sig2eps <- 0
 seed <- 511378
 set.seed(seed)
 nsc <- simulate_from_model(composite = FALSE, stationary = FALSE, 
-                           parameters = params)
+                           parameters = params, seed = seed)
 
 dataY <- data.frame(x = nsc$x, y = nsc$y)
 predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
@@ -208,7 +258,8 @@ gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
 #### Stationary Non-Composite 
 
-This is the most typical model when people think of GP regression. An example of a draw from this process follows:
+This is the most typical model when people think of GP regression. An example of
+a draw from this process follows:
 ```{r sncExample}
 paramsSNC <- createParameterList(composite = FALSE, stationary = TRUE)
 paramsSNC$rho <- 0.7
@@ -217,7 +268,7 @@ paramsSNC$sig2eps <- 0
 seed <- 485268
 set.seed(seed)
 nsc <- simulate_from_model(composite = FALSE, stationary = TRUE, 
-                           parameters = paramsSNC)
+                           parameters = paramsSNC, seed = seed)
 
 dataY <- data.frame(x = nsc$x, y = nsc$y)
 predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
@@ -251,7 +302,7 @@ seed <- 485268
 set.seed(seed)
 paramsSNC$sig2eps <- 0.1
 snc <- simulate_from_model(composite = FALSE, stationary = TRUE, 
-                           parameters = paramsSNC)
+                           parameters = paramsSNC, seed = seed)
 
 dataY <- data.frame(x = snc$x, y = snc$y)
 predY <- data.frame(x = snc$xPred, y = snc$yPred)
@@ -276,7 +327,8 @@ sncPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
 seed <- 701687
 set.seed(seed)
 paramsNSC$sig2eps <- 0.005
-nsc <- bcgp:::simulateYGL(stationary = FALSE, parameters = paramsNSC)
+nsc <- simulate_from_model(stationary = FALSE, composite = TRUE,
+                           parameters = paramsNSC, seed = seed)
 
 dataY <- data.frame(x = nsc$x, y = nsc$y)
 predY <- data.frame(x = nsc$xPred, y = nsc$yPred)

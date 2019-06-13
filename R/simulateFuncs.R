@@ -24,22 +24,48 @@
 #' then parameter values will be drawn at random. A call to
 #' \code{createParameterList()} will assist in the correct creation of this
 #' list.
+#' @param decomposition A logical indicating whether to return the global, local
+#' and error processes along with the overall process. If \code{composite =
+#' FALSE}, then this argument will be ignored. Defaults to FALSE.
+#' @param seed A numeric value indicating the seed for random number generation.
+#' \code{as.integer} will be applied to the value before setting the seed for
+#' the random number generator.
+#' The default is generated from 1 to the maximum integer supported by R on the
+#' machine.
 #' @return A list with elements \code{x} (an \emph{n x d} matrix), \code{y} (a
 #' vector of length \emph{n}), \code{xPred} (an \emph{nPred x d} matrix), and
 #' \code{yPred} (a vector of length \emph{nPred}) corresponding to training
 #' locations, training responses, test locations, and test responses,
 #' respectively, and element \code{parameters}, which contains the parameters
-#' used to simulate the data.
+#' used to simulate the data. If the \code{decomposition} argument is
+#' \code{TRUE} (and \code{composite} is \code{TRUE}), then additional elements
+#' \code{yG}, \code{yGPred}, \code{yL}, \code{yLPred}, \code{yE}, and
+#' \code{yEPred} corresponding to \strong{G}lobal, \strong{L}ocal, and
+#' \strong{Error} processes will be returned. Note: \code{yEPred} will
+#' \emph{always} be a zero vector. It is only returned for completeness.
 #' @seealso \code{\link{createParameterList}}
 #' @examples
 #' simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 #' @export
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
-                                noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
+                                noise = FALSE, d = 1L, n = 15*d, nPred = 100*d,
                                 parameters = createParameterList(composite,
                                                                  stationary,
-                                                                 noise, d)){
+                                                                 noise, d),
+                                decomposition = FALSE,
+                                seed = sample.int(.Machine$integer.max, 1)){
 
+  seed <- checkSeed(seed)
+  if(composite == FALSE && decomposition == TRUE){
+    warning(strwrap(prefix = " ", initial = "",
+                    "Non-Composite models do not decompose into global and local
+                    processes. If you really want to simulate global and local
+                    processes, change 'composite' to TRUE. Proceeding with
+                    'decomposition' as FALSE."))
+    decomposition <- FALSE
+  }
+
+  set.seed(seed)
   xMatrices <- createXAndXPred(d, n, nPred)
   x <- xMatrices$x
   xPred <- xMatrices$xPred
@@ -50,24 +76,42 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                         stationary = stationary,
                         d = d)
 
-
   data <- simulateY(x = x, xPred = xPred, parameters = parameters,
-                    stationary = stationary, composite = composite)
+                    stationary = stationary, composite = composite,
+                    decomposition = decomposition, seed = seed)
 
-  toReturn <- list(x = x, y = data$y,
-                   xPred = xPred, yPred = data$yPred,
-                   parameters = data$parameters)
+  if(decomposition == FALSE){
+    toReturn <- list(x = x, y = data$y,
+                     xPred = xPred, yPred = data$yPred,
+                     parameters = data$parameters,
+                     seed = seed)
+  }else{
+    toReturn <- list(x = x, y = data$y,
+                     xPred = xPred, yPred = data$yPred,
+                     yG = data$yG, yGPred = data$yGPred,
+                     yL = data$yL, yLPred = data$yLPred,
+                     yE = data$yE, yEPred = data$yEPred,
+                     parameters = data$parameters,
+                     seed = seed)
+  }
   return(toReturn)
 }
 
 simulateY <- function(x, xPred, parameters,
-                      stationary, composite){
+                      stationary, composite,
+                      decomposition, seed = seed){
 
+  set.seed(seed)
   if(composite == TRUE){
-    if(stationary == FALSE){
-      data <- simulateYCompNS(x, xPred, parameters)
-    }else{ # composite == TRUE, stationary == TRUE
-      data <- simulateYCompS(x, xPred, parameters)
+    if(decomposition == TRUE){
+      data <- simulateYGL(x = x, xPred = xPred, parameters = parameters,
+                          stationary = stationary)
+    }else{
+      if(stationary == FALSE){
+        data <- simulateYCompNS(x = x, xPred = xPred, parameters = parameters)
+      }else{ # composite == TRUE, stationary == TRUE
+        data <- simulateYCompS(x = x, xPred = xPred, parameters = parameters)
+      }
     }
   }else{
     if(stationary == FALSE){
@@ -76,6 +120,7 @@ simulateY <- function(x, xPred, parameters,
       data <- simulateYNonCompS(x, xPred, parameters)
     }
   }
+
   return(data)
 }
 
@@ -172,33 +217,20 @@ simulateYNonCompS <- function(x, xPred, parameters){
 
 }
 
-simulateYGL <- function(stationary = FALSE,
-                        noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
-                        parameters = createParameterList(composite = TRUE,
-                                                         stationary,
-                                                         noise, d)){
+simulateYGL <- function(x, xPred, parameters, stationary){
 
-  xMatrices <- createXAndXPred(d, n, nPred)
-
-  validateParameterList(parameters = parameters,
-                        composite = TRUE,
-                        stationary = stationary,
-                        d = d)
-
-  G <- getCorMatR(rbind(xMatrices$x, xMatrices$xPred), parameters$rhoG)
-  L <- getCorMatR(rbind(xMatrices$x, xMatrices$xPred), parameters$rhoL)
+  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
+  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
 
   if(stationary){
-    data <- simulateYGLCompS(xMatrices, parameters, G, L, noise)
+    data <- simulateYGLS(x, xPred, parameters, G, L)
   }else{
-    data <- simulateYGLCompNS(xMatrices, parameters, G, L, noise)
+    data <- simulateYGLNS(x, xPred, parameters, G, L)
   }
 }
 
-simulateYGLCompNS <- function(xMatrices, parameters, G, L, noise = FALSE){
+simulateYGLNS <- function(x, xPred, parameters, G, L){
 
-  x <- xMatrices$x
-  xPred <- xMatrices$xPred
   n <- nrow(x)
   nPred <- nrow(xPred)
 
@@ -219,9 +251,7 @@ simulateYGLCompNS <- function(xMatrices, parameters, G, L, noise = FALSE){
   parameters$V <- VAndVPred[1:n]
   parameters$VPred <- VAndVPred[-(1:n)]
 
-  data <- list(x = x,
-               xPred = xPred,
-               y = YAndYPred[1:n],
+  data <- list(y = YAndYPred[1:n],
                yPred = YAndYPred[-(1:n)],
                yG = GAndGPred[1:n],
                yGPred = GAndGPred[-(1:n)],
@@ -235,10 +265,8 @@ simulateYGLCompNS <- function(xMatrices, parameters, G, L, noise = FALSE){
 
 }
 
-simulateYGLCompS <- function(xMatrices, parameters, G, L, noise = FALSE){
+simulateYGLS <- function(x, xPred, parameters, G, L){
 
-  x <- xMatrices$x
-  xPred <- xMatrices$xPred
   n <- nrow(x)
   nPred <- nrow(xPred)
 
@@ -251,9 +279,7 @@ simulateYGLCompS <- function(xMatrices, parameters, G, L, noise = FALSE){
   EAndEPred <- MASS::mvrnorm(1, rep(0, n + nPred), CE)
   YAndYPred <- GAndGPred + LAndLPred + EAndEPred
 
-  data <- list(x = x,
-               xPred = xPred,
-               y = YAndYPred[1:n],
+  data <- list(y = YAndYPred[1:n],
                yPred = YAndYPred[-(1:n)],
                yG = GAndGPred[1:n],
                yGPred = GAndGPred[-(1:n)],

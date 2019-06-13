@@ -5,8 +5,9 @@
 \title{Simulate from the model}
 \usage{
 simulate_from_model(composite = TRUE, stationary = FALSE,
-  noise = FALSE, d = 1, n = 15 * d, nPred = 100 * d,
-  parameters = createParameterList(composite, stationary, noise, d))
+  noise = FALSE, d = 1L, n = 15 * d, nPred = 100 * d,
+  parameters = createParameterList(composite, stationary, noise, d),
+  decomposition = FALSE, seed = sample.int(.Machine$integer.max, 1))
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process
@@ -31,6 +32,16 @@ should be \code{TRUE}. Defaults to \code{FALSE}}
 then parameter values will be drawn at random. A call to
 \code{createParameterList()} will assist in the correct creation of this
 list.}
+
+\item{decomposition}{A logical indicating whether to return the global, local
+and error processes along with the overall process. If \code{composite =
+FALSE}, then this argument will be ignored. Defaults to FALSE.}
+
+\item{seed}{A numeric value indicating the seed for random number generation.
+\code{as.integer} will be applied to the value before setting the seed for
+the random number generator.
+The default is generated from 1 to the maximum integer supported by R on the
+machine.}
 }
 \value{
 A list with elements \code{x} (an \emph{n x d} matrix), \code{y} (a
@@ -38,7 +49,12 @@ vector of length \emph{n}), \code{xPred} (an \emph{nPred x d} matrix), and
 \code{yPred} (a vector of length \emph{nPred}) corresponding to training
 locations, training responses, test locations, and test responses,
 respectively, and element \code{parameters}, which contains the parameters
-used to simulate the data.
+used to simulate the data. If the \code{decomposition} argument is
+\code{TRUE} (and \code{composite} is \code{TRUE}), then additional elements
+\code{yG}, \code{yGPred}, \code{yL}, \code{yLPred}, \code{yE}, and
+\code{yEPred} corresponding to \strong{G}lobal, \strong{L}ocal, and
+\strong{Error} processes will be returned. Note: \code{yEPred} will
+\emph{always} be a zero vector. It is only returned for completeness.
 }
 \description{
 This function simulates data from the specified (stationary, composite,
