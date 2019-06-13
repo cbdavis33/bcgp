@@ -172,25 +172,35 @@ simulateYNonCompS <- function(x, xPred, parameters){
 
 }
 
-
-simulateYGLCompNS <- function(composite = TRUE, stationary = FALSE,
-                              noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
-                              parameters = createParameterList(composite,
-                                                               stationary,
-                                                               noise, d)){
+simulateYGL <- function(stationary = FALSE,
+                        noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
+                        parameters = createParameterList(composite = TRUE,
+                                                         stationary,
+                                                         noise, d)){
 
   xMatrices <- createXAndXPred(d, n, nPred)
-  x <- xMatrices$x
-  xPred <- xMatrices$xPred
-  rm(xMatrices)
 
   validateParameterList(parameters = parameters,
-                        composite = composite,
+                        composite = TRUE,
                         stationary = stationary,
                         d = d)
 
-  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
-  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
+  G <- getCorMatR(rbind(xMatrices$x, xMatrices$xPred), parameters$rhoG)
+  L <- getCorMatR(rbind(xMatrices$x, xMatrices$xPred), parameters$rhoL)
+
+  if(stationary){
+    data <- simulateYGLCompS(xMatrices, parameters, G, L, noise)
+  }else{
+    data <- simulateYGLCompNS(xMatrices, parameters, G, L, noise)
+  }
+}
+
+simulateYGLCompNS <- function(xMatrices, parameters, G, L, noise = FALSE){
+
+  x <- xMatrices$x
+  xPred <- xMatrices$xPred
+  n <- nrow(x)
+  nPred <- nrow(xPred)
 
   K <- getCovMatSR(parameters$sig2V,
                    R = getCorMatR(rbind(x, xPred), parameters$rhoV),
@@ -225,24 +235,12 @@ simulateYGLCompNS <- function(composite = TRUE, stationary = FALSE,
 
 }
 
-simulateYGLCompS <- function(composite = TRUE, stationary = TRUE,
-                             noise = FALSE, d = 1, n = 15*d, nPred = 100*d,
-                             parameters = createParameterList(composite,
-                                                              stationary,
-                                                              noise, d)){
+simulateYGLCompS <- function(xMatrices, parameters, G, L, noise = FALSE){
 
-  xMatrices <- createXAndXPred(d, n, nPred)
   x <- xMatrices$x
   xPred <- xMatrices$xPred
-  rm(xMatrices)
-
-  validateParameterList(parameters = parameters,
-                        composite = composite,
-                        stationary = stationary,
-                        d = d)
-
-  G <- getCorMatR(rbind(x, xPred), parameters$rhoG)
-  L <- getCorMatR(rbind(x, xPred), parameters$rhoL)
+  n <- nrow(x)
+  nPred <- nrow(xPred)
 
   CG <- parameters$w*getCovMatSR(parameters$sigma2, G, 0)
   CL <- (1 - parameters$w)*getCovMatSR(parameters$sigma2, L, 0)
@@ -252,9 +250,6 @@ simulateYGLCompS <- function(composite = TRUE, stationary = TRUE,
   LAndLPred <- MASS::mvrnorm(1, rep(0, n + nPred), CL)
   EAndEPred <- MASS::mvrnorm(1, rep(0, n + nPred), CE)
   YAndYPred <- GAndGPred + LAndLPred + EAndEPred
-
-  parameters$V <- VAndVPred[1:n]
-  parameters$VPred <- VAndVPred[-(1:n)]
 
   data <- list(x = x,
                xPred = xPred,
