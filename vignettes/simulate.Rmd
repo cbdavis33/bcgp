@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 ## Simulating from a BCGP model
 
 Simulating from the [Bayesian Composite Gaussian Process](bcgp.html) model is 
-straightforward. The function [simulate_from_model](../html/simulate_from_model)
+straightforward. The function [simulate_from_model](../help/simulate_from_model)
 has options that allow the user to simulate from a stationary or non-stationary
-model, a composite or non-composite model, deterministic or noisy, and any 
+model, a composite or non-composite model, deterministic or noisy data, and any
 combination of these.
