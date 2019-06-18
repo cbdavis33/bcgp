@@ -81,19 +81,37 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                     decomposition = decomposition, seed = seed)
 
   if(decomposition == FALSE){
-    toReturn <- list(x = x, y = data$y,
-                     xPred = xPred, yPred = data$yPred,
-                     parameters = data$parameters,
-                     seed = seed)
+    # toReturn <- list(x = x, y = data$y,
+    #                  xPred = xPred, yPred = data$yPred,
+    #                  parameters = data$parameters,
+    #                  seed = seed)
+    toReturn <- new("bcgpsims",
+                    data = list(x = x, y = data$y),
+                    pred = list(x = xPred, y = data$yPred),
+                    parameters = data$parameters,
+                    stationary = stationary,
+                    composite = composite,
+                    seed = seed)
   }else{
-    toReturn <- list(x = x, y = data$y,
-                     xPred = xPred, yPred = data$yPred,
-                     yG = data$yG, yGPred = data$yGPred,
-                     yL = data$yL, yLPred = data$yLPred,
-                     yE = data$yE, yEPred = data$yEPred,
-                     parameters = data$parameters,
-                     seed = seed)
+    # toReturn <- list(x = x, y = data$y,
+    #                  xPred = xPred, yPred = data$yPred,
+    #                  yG = data$yG, yGPred = data$yGPred,
+    #                  yL = data$yL, yLPred = data$yLPred,
+    #                  yE = data$yE, yEPred = data$yEPred,
+    #                  parameters = data$parameters,
+    #                  seed = seed)
+    toReturn <- new("bcgpsims",
+                    data = list(x = x, y = data$y, yG = data$yG,
+                                yL = data$yL, yE = data$yE),
+                    pred = list(x = xPred, y = data$yPred,
+                                yG = data$yGPred, yL = data$yLPred,
+                                yE = data$yEPred),
+                    parameters = data$parameters,
+                    stationary = stationary,
+                    composite = composite,
+                    seed = seed)
   }
+
   return(toReturn)
 }
 
