@@ -90,51 +90,14 @@ paramsNSC$rhoV <- 0.9
 paramsNSC$sig2eps <- 0
 seed <- 701687
 set.seed(seed)
-# nsc <- bcgp:::simulateYGL(stationary = FALSE, parameters = paramsNSC)
+
 nsc <- simulate_from_model(stationary = FALSE, composite = TRUE,
                            parameters = paramsNSC, decomposition = TRUE,
                            seed = seed)
 
-# dataY <- data.frame(x = nsc$x, y = nsc$y)
-# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
-# predG <- data.frame(x = nsc$xTest, y = nsc$yGTest)
-# predL <- data.frame(x = nsc$xTest, y = nsc$yLTest)
-# predV <- data.frame(x = nsc$xTest, y = nsc$parameters$VTest)
-dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
-predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
-predG <- data.frame(x = nsc@test$x, y = nsc@test$yG)
-predL <- data.frame(x = nsc@test$x, y = nsc@test$yL)
-predV <- data.frame(x = nsc@test$x, y = nsc@parameters$VTest)
-
-dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary Composite BCGP") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
-  ggplot2::geom_line(data = predG, ggplot2::aes(color = "blue")) +
-  ggplot2::geom_line(data = predL, ggplot2::aes(color = "green")) +
-  ggplot2::theme_classic() +
-  ggplot2::scale_color_manual(name = NULL,
-                              values = c("red" = "red", "black" = "black",
-                                         "blue" = "blue", "green" = "green"),
-                              labels = c("Observed Data", "True Process", 
-                                         "Global Process", "Local Process"),
-                              breaks = c("red", "black", "blue", "green"),
-                              guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid", "solid", 
-                                             "solid"),
-                                shape = c(16, NA, NA, NA)))) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.5, 0.2),
-                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
-
-sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary BCGP Example:\nVariance Process") +
-  ggplot2::geom_line(data = predV, color = "black") +
-  ggplot2::theme_classic() +
-  ggplot2::ylab(~ paste(sigma ^ 2, "(x)")) +
-  ggplot2::theme(plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
+dataPlot <- plot(nsc, process = "y", decomposition = TRUE, print = FALSE)
+sigmaPlot <- plot(nsc, process = "variance", decomposition = TRUE,
+                  print = FALSE)
 
 gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
@@ -175,39 +138,7 @@ nsc <- simulate_from_model(stationary = TRUE, composite = TRUE,
                            parameters = params, decomposition = TRUE,
                            seed = seed)
 
-# dataY <- data.frame(x = nsc$x, y = nsc$y)
-# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
-# predG <- data.frame(x = nsc$xTest, y = nsc$yGTest)
-# predL <- data.frame(x = nsc$xTest, y = nsc$yLTest)
-dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
-predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
-predG <- data.frame(x = nsc@test$x, y = nsc@test$yG)
-predL <- data.frame(x = nsc@test$x, y = nsc@test$yL)
-
-
-dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Stationary Composite BCGP") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
-  ggplot2::geom_line(data = predG, ggplot2::aes(color = "blue")) +
-  ggplot2::geom_line(data = predL, ggplot2::aes(color = "green")) +
-  ggplot2::theme_classic() +
-  ggplot2::scale_color_manual(name = NULL,
-                              values = c("red" = "red", "black" = "black",
-                                         "blue" = "blue", "green" = "green"),
-                              labels = c("Observed Data", "True Process", 
-                                         "Global Process", "Local Process"),
-                              breaks = c("red", "black", "blue", "green"),
-                              guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid", "solid", 
-                                             "solid"),
-                                shape = c(16, NA, NA, NA)))) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.8, 0.2),
-                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
-
-dataPlot
+plot(nsc, process = "y", decomposition = TRUE, print = FALSE)
 
 ```
 
@@ -233,37 +164,8 @@ set.seed(seed)
 nsc <- simulate_from_model(composite = FALSE, stationary = FALSE, 
                            parameters = params, seed = seed)
 
-# dataY <- data.frame(x = nsc$x, y = nsc$y)
-# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
-# predV <- data.frame(x = nsc$xTest, y = nsc$parameters$VTest)
-dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
-predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
-predV <- data.frame(x = nsc@test$x, y = nsc@parameters$VTest)
-
-dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary Non-Composite BCGP") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
-  ggplot2::theme_classic() +
-  ggplot2::scale_color_manual(name = NULL,
-                              values = c("red" = "red", "black" = "black"),
-                              labels = c("Observed Data", "True Process"),
-                              breaks = c("red", "black"),
-                              guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid"),
-                                shape = c(16, NA)))) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.8, 0.8),
-                 plot.title = ggplot2::element_text(size = 15, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
-
-sigmaPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary BCGP Example:\nVariance Process") +
-  ggplot2::geom_line(data = predV, color = "black") +
-  ggplot2::theme_classic() +
-  ggplot2::ylab(~ paste(sigma ^ 2, "(x)")) +
-  ggplot2::theme(plot.title = ggplot2::element_text(size = 15, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
+dataPlot <- plot(nsc, process = "y", print = FALSE)
+sigmaPlot <- plot(nsc, process = "variance", print = FALSE)
 
 gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
@@ -283,29 +185,7 @@ set.seed(seed)
 nsc <- simulate_from_model(composite = FALSE, stationary = TRUE, 
                            parameters = paramsSNC, seed = seed)
 
-# dataY <- data.frame(x = nsc$x, y = nsc$y)
-# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
-dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
-predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
-
-dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Stationary Non-Composite BCGP") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
-  ggplot2::theme_classic() +
-  ggplot2::scale_color_manual(name = NULL,
-                              values = c("red" = "red", "black" = "black"),
-                              labels = c("Observed Data", "True Process"),
-                              breaks = c("red", "black"),
-                              guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid"),
-                                shape = c(16, NA)))) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.8, 0.2),
-                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
-
-dataPlot
+plot(nsc, process = "y", decomposition = FALSE, print = FALSE)
 
 ```
 
@@ -319,27 +199,8 @@ paramsSNC$sig2eps <- 0.1
 snc <- simulate_from_model(composite = FALSE, stationary = TRUE, 
                            parameters = paramsSNC, seed = seed)
 
-# dataY <- data.frame(x = snc$x, y = snc$y)
-# predY <- data.frame(x = snc$xTest, y = snc$yTest)
-dataY <- data.frame(x = snc@training$x, y = snc@training$y)
-predY <- data.frame(x = snc@test$x, y = snc@test$y)
-
-sncPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Stationary Non-Composite BCGP\nWith Measurement Error") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
-  ggplot2::theme_classic() +
-  ggplot2::scale_color_manual(name = NULL,
-                              values = c("red" = "red", "black" = "black"),
-                              labels = c("Observed Data", "True Process"),
-                              breaks = c("red", "black"),
-                              guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid"),
-                                shape = c(16, NA)))) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.8, 0.2),
-                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
+sncPlot <- plot(snc, process = "y", decomposition = FALSE, print = FALSE) +
+  ggplot2::ggtitle("Stationary Non-Composite BCGP\nWith Measurement Error") 
 
 seed <- 701687
 set.seed(seed)
@@ -350,22 +211,9 @@ nsc <- simulate_from_model(stationary = FALSE, composite = TRUE,
 dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
 predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
 
-nscPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
-  ggplot2::ggtitle("Non-Stationary Composite BCGP\nWith Measurement Error") +
-  ggplot2::geom_point(data = dataY, ggplot2::aes(color = "red")) +
-  ggplot2::geom_line(data = predY, ggplot2::aes(color = "black")) +
-  ggplot2::theme_classic() +
-  ggplot2::scale_color_manual(name = NULL,
-                              values = c("red" = "red", "black" = "black"),
-                              labels = c("Observed Data", "True Process"),
-                              breaks = c("red", "black"),
-                              guide = ggplot2::guide_legend(override.aes = list(
-                                linetype = c("blank", "solid"),
-                                shape = c(16, NA)))) +
-  ggplot2::ylab("Y(x)") + 
-  ggplot2::theme(legend.position = c(0.5, 0.2),
-                 plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                 axis.title = ggplot2::element_text(size = 16)) 
+nscPlot <- plot(nsc, process = "y", decomposition = FALSE, print = FALSE) +
+  ggplot2::ggtitle("Non-Stationary Composite BCGP\nWith Measurement Error") 
+
 
 gridExtra::grid.arrange(sncPlot, nscPlot, ncol = 2)
 
