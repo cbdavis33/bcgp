@@ -61,6 +61,7 @@ plotDataSimsYGL <- function(x){
                      plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
+    # TODO: do plotting for 2-D data
     stop(strwrap(prefix = " ", initial = "",
                  "Plotting is not currently, but will be, supported for 2-D
                  data. However, plotting the decomposition for 2-D data is
@@ -105,6 +106,7 @@ plotDataSimsY <- function(x){
                      plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
+    # TODO: do plotting for 2-D data
     stop("Plotting is not currently, but will be, supported for 2-D data.")
   }else{
     stop("Plotting is currently only supported for 1-D data.")
@@ -126,6 +128,7 @@ plotVarSims <- function(x){
       ggplot2::theme(plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
+    # TODO: do plotting for 2-D data
     stop("Plotting is not currently, but will be, supported for 2-D data.")
   }else{
     stop("Plotting is currently only supported for 1-D data.")

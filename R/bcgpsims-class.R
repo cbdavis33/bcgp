@@ -1,4 +1,6 @@
 #' Plot a bcgpsims object
+#'
+#' TODO: DOCUMENTATION
 #' @export
 setMethod("plot", signature(x = "bcgpsims"),
           function(x, ..., process = c("y", "variance"),
