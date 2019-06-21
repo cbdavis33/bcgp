@@ -95,11 +95,16 @@ nsc <- simulate_from_model(stationary = FALSE, composite = TRUE,
                            parameters = paramsNSC, decomposition = TRUE,
                            seed = seed)
 
-dataY <- data.frame(x = nsc$x, y = nsc$y)
-predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
-predG <- data.frame(x = nsc$xPred, y = nsc$yGPred)
-predL <- data.frame(x = nsc$xPred, y = nsc$yLPred)
-predV <- data.frame(x = nsc$xPred, y = nsc$parameters$VPred)
+# dataY <- data.frame(x = nsc$x, y = nsc$y)
+# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
+# predG <- data.frame(x = nsc$xTest, y = nsc$yGTest)
+# predL <- data.frame(x = nsc$xTest, y = nsc$yLTest)
+# predV <- data.frame(x = nsc$xTest, y = nsc$parameters$VTest)
+dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
+predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
+predG <- data.frame(x = nsc@test$x, y = nsc@test$yG)
+predL <- data.frame(x = nsc@test$x, y = nsc@test$yL)
+predV <- data.frame(x = nsc@test$x, y = nsc@parameters$VTest)
 
 dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
   ggplot2::ggtitle("Non-Stationary Composite BCGP") +
@@ -170,10 +175,15 @@ nsc <- simulate_from_model(stationary = TRUE, composite = TRUE,
                            parameters = params, decomposition = TRUE,
                            seed = seed)
 
-dataY <- data.frame(x = nsc$x, y = nsc$y)
-predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
-predG <- data.frame(x = nsc$xPred, y = nsc$yGPred)
-predL <- data.frame(x = nsc$xPred, y = nsc$yLPred)
+# dataY <- data.frame(x = nsc$x, y = nsc$y)
+# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
+# predG <- data.frame(x = nsc$xTest, y = nsc$yGTest)
+# predL <- data.frame(x = nsc$xTest, y = nsc$yLTest)
+dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
+predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
+predG <- data.frame(x = nsc@test$x, y = nsc@test$yG)
+predL <- data.frame(x = nsc@test$x, y = nsc@test$yL)
+
 
 dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
   ggplot2::ggtitle("Stationary Composite BCGP") +
@@ -223,9 +233,12 @@ set.seed(seed)
 nsc <- simulate_from_model(composite = FALSE, stationary = FALSE, 
                            parameters = params, seed = seed)
 
-dataY <- data.frame(x = nsc$x, y = nsc$y)
-predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
-predV <- data.frame(x = nsc$xPred, y = nsc$parameters$VPred)
+# dataY <- data.frame(x = nsc$x, y = nsc$y)
+# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
+# predV <- data.frame(x = nsc$xTest, y = nsc$parameters$VTest)
+dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
+predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
+predV <- data.frame(x = nsc@test$x, y = nsc@parameters$VTest)
 
 dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
   ggplot2::ggtitle("Non-Stationary Non-Composite BCGP") +
@@ -270,8 +283,10 @@ set.seed(seed)
 nsc <- simulate_from_model(composite = FALSE, stationary = TRUE, 
                            parameters = paramsSNC, seed = seed)
 
-dataY <- data.frame(x = nsc$x, y = nsc$y)
-predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
+# dataY <- data.frame(x = nsc$x, y = nsc$y)
+# predY <- data.frame(x = nsc$xTest, y = nsc$yTest)
+dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
+predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
 
 dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
   ggplot2::ggtitle("Stationary Non-Composite BCGP") +
@@ -304,8 +319,10 @@ paramsSNC$sig2eps <- 0.1
 snc <- simulate_from_model(composite = FALSE, stationary = TRUE, 
                            parameters = paramsSNC, seed = seed)
 
-dataY <- data.frame(x = snc$x, y = snc$y)
-predY <- data.frame(x = snc$xPred, y = snc$yPred)
+# dataY <- data.frame(x = snc$x, y = snc$y)
+# predY <- data.frame(x = snc$xTest, y = snc$yTest)
+dataY <- data.frame(x = snc@training$x, y = snc@training$y)
+predY <- data.frame(x = snc@test$x, y = snc@test$y)
 
 sncPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
   ggplot2::ggtitle("Stationary Non-Composite BCGP\nWith Measurement Error") +
@@ -330,8 +347,8 @@ paramsNSC$sig2eps <- 0.005
 nsc <- simulate_from_model(stationary = FALSE, composite = TRUE,
                            parameters = paramsNSC, seed = seed)
 
-dataY <- data.frame(x = nsc$x, y = nsc$y)
-predY <- data.frame(x = nsc$xPred, y = nsc$yPred)
+dataY <- data.frame(x = nsc@training$x, y = nsc@training$y)
+predY <- data.frame(x = nsc@test$x, y = nsc@test$y)
 
 nscPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x, y)) +
   ggplot2::ggtitle("Non-Stationary Composite BCGP\nWith Measurement Error") +

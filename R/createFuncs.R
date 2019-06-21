@@ -79,16 +79,16 @@ createInits  <- function(x, priors = createPriors(x), chains = 4){
   return(initList)
 }
 
-createXAndXPred <- function(d, n, nPred){
+createXAndXTest <- function(d, n, nTest){
 
   if(d == 1){
     x <- matrix(seq(0, 1, length.out = n), ncol = 1)
-    xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
+    xTest <- matrix(seq(0, 1, length.out = nTest), ncol = 1)
   }else{
     x <- createXMat(n, d)
-    xPred <- createXMat(nPred, d)
+    xTest <- createXMat(nTest, d)
   }
-  return(list(x = x, xPred = xPred))
+  return(list(x = x, xTest = xTest))
 }
 
 createXMat <- function(n, d){

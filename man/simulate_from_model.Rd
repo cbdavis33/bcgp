@@ -5,7 +5,7 @@
 \title{Simulate from the model}
 \usage{
 simulate_from_model(composite = TRUE, stationary = FALSE,
-  noise = FALSE, d = 1L, n = 15 * d, nPred = 100 * d,
+  noise = FALSE, d = 1L, n = 15 * d, nTest = 100 * d,
   parameters = createParameterList(composite, stationary, noise, d),
   decomposition = FALSE, seed = sample.int(.Machine$integer.max, 1))
 }
@@ -26,7 +26,7 @@ should be \code{TRUE}. Defaults to \code{FALSE}}
 
 \item{n}{An integer giving the desired number of training data locations.}
 
-\item{nPred}{An integer giving the desired number of test data locations.}
+\item{nTest}{An integer giving the desired number of test data locations.}
 
 \item{parameters}{A list containing desired parameter values. If missing,
 then parameter values will be drawn at random. A call to
@@ -39,36 +39,24 @@ FALSE}, then this argument will be ignored. Defaults to FALSE.}
 
 \item{seed}{A numeric value indicating the seed for random number generation.
 \code{as.integer} will be applied to the value before setting the seed for
-the random number generator.
-The default is generated from 1 to the maximum integer supported by R on the
-machine.}
+the random number generator. The default is generated from 1 to the maximum
+integer supported by R on the machine.}
 }
 \value{
-A list with elements \code{x} (an \emph{n x d} matrix), \code{y} (a
-vector of length \emph{n}), \code{xPred} (an \emph{nPred x d} matrix), and
-\code{yPred} (a vector of length \emph{nPred}) corresponding to training
-locations, training responses, test locations, and test responses,
-respectively, and element \code{parameters}, which contains the parameters
-used to simulate the data. If the \code{decomposition} argument is
-\code{TRUE} (and \code{composite} is \code{TRUE}), then additional elements
-\code{yG}, \code{yGPred}, \code{yL}, \code{yLPred}, \code{yE}, and
-\code{yEPred} corresponding to \strong{G}lobal, \strong{L}ocal, and
-\strong{Error} processes will be returned. Note: \code{yEPred} will
-\emph{always} be a zero vector. It is only returned for completeness.
+An instance of S4 class \code{bcgpsims}
 }
 \description{
-This function simulates data from the specified (stationary, composite,
+This function simulates data from the specified (by stationary, composite,
 noise) Gaussian process model.
 }
 \details{
-\code{simulate_from_model} returns a list with elements \code{x}, \code{y},
-\code{xPred}, \code{yPred}, corresponding to training locations, training
-responses, test locations, and test responses, respectively, and element
-\code{parameters}, which contains the parameters used to simulate the data.
+\code{simulate_from_model} returns an instance of S4 class \code{bcgpsims}.
+This object can then be plotted to get an idea of what draws from these
+models look like or the data in the object can be fit.
 }
 \examples{
 simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 }
 \seealso{
-\code{\link{createParameterList}}
+\code{\link{createParameterList}} \linkS4class{bcgpsims}
 }
