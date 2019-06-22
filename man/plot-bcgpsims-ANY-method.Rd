@@ -9,5 +9,5 @@
   decomposition = FALSE, print = TRUE)
 }
 \description{
-Plot a bcgpsims object
+TODO: DOCUMENTATION
 }

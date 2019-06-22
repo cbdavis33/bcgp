@@ -119,15 +119,25 @@ plotDataSimsY <- function(x){
       dplyr::bind_rows(dataToPlotPred)
 
     dataPlot <- ggplot2::ggplot(data = dataToPlot,
-                          mapping = ggplot2::aes(x = x1, y = x2, color = y)) +
+                                mapping = ggplot2::aes(x = x1, y = x2,
+                                                       color = y)) +
       ggplot2::ggtitle(plotTitle) +
       ggplot2::theme_classic() +
       ggplot2::geom_point(mapping = ggplot2::aes(size = type)) +
+      ggplot2::scale_size_manual(name = NULL,
+                                 values = c("test" = 1, "training" = 4),
+                                 labels = c("True Process", "Observed Data"),
+                                 breaks = c("test", "training"),
+                                 guide = ggplot2::guide_legend(
+                                   override.aes = list(
+                                     size = c(1, 4),
+                                     shape = c(16, 16)))) +
       ggplot2::scale_color_gradient2(name="Y(x)", mid = "yellow", low = "red",
                                      high = "blue", midpoint = 0) +
       ggplot2::theme(legend.position = "bottom",
                      plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                     axis.title = ggplot2::element_text(size = 16))
+                     axis.title = ggplot2::element_text(size = 16)) +
+      ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
 
 
   }else{
@@ -151,9 +161,25 @@ plotVarSims <- function(x){
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
     # TODO: do plotting for 2-D data
-    stop("Plotting is not currently, but will be, supported for 2-D data.")
+    predV <- data.frame(x1 = x@test$x[, 1], x2 = x@test$x[, 2],
+                        y = x@parameters$VTest)
+
+    varPlot <- ggplot2::ggplot(data = predV,
+                               mapping = ggplot2::aes(x = x1, y = x2,
+                                                      color = y)) +
+      ggplot2::ggtitle("Non-Stationary BCGP:\nVariance Process") +
+      ggplot2::theme_classic() +
+      ggplot2::geom_point() +
+      ggplot2::scale_color_gradient2(name="Y(x)", mid = "yellow", low = "red",
+                                     high = "blue", midpoint = mean(predV$y)) +
+      ggplot2::theme(legend.position = "bottom",
+                     plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
+                     axis.title = ggplot2::element_text(size = 16)) +
+      ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
+
+
   }else{
-    stop("Plotting is currently only supported for 1-D data.")
+    stop("Plotting is currently only supported for 1-D and 2-D data.")
   }
   return(varPlot)
 }
