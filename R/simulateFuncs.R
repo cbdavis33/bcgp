@@ -5,7 +5,7 @@
 #'
 #' \code{simulate_from_model} returns an instance of S4 class \code{bcgpsims}.
 #' This object can then be plotted to get an idea of what draws from these
-#' models look like or the data in the object can be fit.
+#' models look like, or the data in the object can be fit.
 #'
 #' @param composite A logical, \code{TRUE} for a composite of a global process
 #' and a local process, \code{FALSE} for non-composite. Defaults to \code{TRUE}.
@@ -30,10 +30,32 @@
 #' \code{as.integer} will be applied to the value before setting the seed for
 #' the random number generator. The default is generated from 1 to the maximum
 #' integer supported by R on the machine.
+#' @param ... optional parameters
+#' \describe{
+#'   \item{\code{randomX1D}}{A logical indicating whether the training data
+#'   should be generated in a sequence, \code{seq(0, 1, length.out = n)}, or
+#'   randomly generated from [0, 1]. Defaults to \code{FALSE} (sequence). Only
+#'   useful for 1-D data.}
+#'   \item{\code{gridTest}}{A logical indicating whether the test data should be
+#'   generated on a grid. Defaults to \code{FALSE}. Only useful for
+#'   \eqn{d \geq 2}.}
+#'   \item{\code{gridTestSize}}{An integer indicating the number of points per
+#'   dimension for the test grid. Only useful for \eqn{d \geq 2}.}
+#'   \item{}{Be aware that a grid in high dimensions quickly gets very large.
+#'   For example, for \code{d} = 3 and \code{gridTestSize} = 10, the number of
+#'   points in this grid is \eqn{10^3 = 1000}. Therefore, in higher dimensions (
+#'   \eqn{d > 4}), the simulation will default to \code{gridTest = FALSE} if
+#'   \code{gridTestSize} is left unspecified, and \code{nTest} test locations
+#'   will be randomly selected on \eqn{[0, 1]^d}.}
+#' }
 #' @return An instance of S4 class \code{bcgpsims}
 #' @seealso \code{\link{createParameterList}} \linkS4class{bcgpsims}
 #' @examples
 #' simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
+#'
+#' params <- createParameterList()
+#' params$w <- 0.99
+#' simulate_from_model(parameters = params, randomX = TRUE)
 #' @export
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, d = 1L, n = 15*d, nTest = 100*d,
@@ -41,7 +63,10 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                                                  stationary,
                                                                  noise, d),
                                 decomposition = FALSE,
-                                seed = sample.int(.Machine$integer.max, 1)){
+                                seed = sample.int(.Machine$integer.max, 1),
+                                ...){
+
+  extraArgs <- simsUnpackDots(d, ...)
 
   seed <- checkSeed(seed)
   if(composite == FALSE && decomposition == TRUE){
@@ -54,7 +79,9 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
   }
 
   set.seed(seed)
-  xMatrices <- createXAndXTest(d, n, nTest)
+  xMatrices <- createXAndXTest(d, n, nTest, gridTest = extraArgs$gridTest,
+                               randomX = extraArgs$randomX,
+                               gridTestSize = extraArgs$gridTestSize)
   x <- xMatrices$x
   xTest <- xMatrices$xTest
   rm(xMatrices)
@@ -71,7 +98,8 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
   if(decomposition == FALSE){
     toReturn <- new("bcgpsims",
                     training = list(x = x, y = data$y),
-                    test = list(x = xTest, y = data$yTest),
+                    test = list(x = xTest, y = data$yTest,
+                                grid = extraArgs$gridTest),
                     parameters = data$parameters,
                     stationary = stationary,
                     composite = composite,
@@ -82,7 +110,7 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                     yL = data$yL, yE = data$yE),
                     test = list(x = xTest, y = data$yTest,
                                 yG = data$yGTest, yL = data$yLTest,
-                                yE = data$yETest),
+                                yE = data$yETest, grid = extraArgs$gridTest),
                     parameters = data$parameters,
                     stationary = stationary,
                     composite = composite,
@@ -285,5 +313,48 @@ simulateYGLS <- function(x, xTest, parameters, G, L){
                parameters = parameters)
 
   return(data)
+
+}
+
+simsUnpackDots <- function(d, ...){
+
+  dots <- list(...)
+
+  dotsNames <- names(dots)
+  gridTest <- ifelse("gridTest" %in% dotsNames && is.logical(dots$gridTest),
+                     dots$gridTest, FALSE)
+
+  if(gridTest){
+    if("gridTestSize" %in% dotsNames && is.numeric(dots$gridTestSize) &&
+       dots$gridTestSize >= 1){
+      gridTestSize <- as.integer(dots$gridTestSize)
+    }else{
+
+      if(d <= 4){
+        gridTestSize <- switch(d,
+                               100L,
+                               10L,
+                               7L,
+                               5L)
+
+      }else{
+        message(strwrap(prefix = " ", initial = "",
+                        "A grid in high dimensions quickly gets very large.
+                        Please input a smaller 'gridTestSize' or set 'gridTest'
+                        to FALSE. Proceeding with gridTest = FALSE."))
+        gridTest <- FALSE
+        gridTestSize <- numeric()
+      }
+    }
+  }else{
+    gridTestSize <- numeric()
+  }
+
+
+  randomX <- ifelse("randomX1D" %in% dotsNames && is.logical(dots$randomX1D),
+                    dots$randomX1D, FALSE)
+
+  return(list(randomX = randomX, gridTest = gridTest,
+              gridTestSize = gridTestSize))
 
 }

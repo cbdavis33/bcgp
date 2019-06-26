@@ -7,7 +7,8 @@
 simulate_from_model(composite = TRUE, stationary = FALSE,
   noise = FALSE, d = 1L, n = 15 * d, nTest = 100 * d,
   parameters = createParameterList(composite, stationary, noise, d),
-  decomposition = FALSE, seed = sample.int(.Machine$integer.max, 1))
+  decomposition = FALSE, seed = sample.int(.Machine$integer.max, 1),
+  ...)
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process
@@ -41,6 +42,25 @@ FALSE}, then this argument will be ignored. Defaults to FALSE.}
 \code{as.integer} will be applied to the value before setting the seed for
 the random number generator. The default is generated from 1 to the maximum
 integer supported by R on the machine.}
+
+\item{...}{optional parameters
+\describe{
+  \item{\code{randomX1D}}{A logical indicating whether the training data
+  should be generated in a sequence, \code{seq(0, 1, length.out = n)}, or
+  randomly generated from [0, 1]. Defaults to \code{FALSE} (sequence). Only
+  useful for 1-D data.}
+  \item{\code{gridTest}}{A logical indicating whether the test data should be
+  generated on a grid. Defaults to \code{FALSE}. Only useful for
+  \eqn{d \geq 2}.}
+  \item{\code{gridTestSize}}{An integer indicating the number of points per
+  dimension for the test grid. Only useful for \eqn{d \geq 2}.}
+  \item{}{Be aware that a grid in high dimensions quickly gets very large.
+  For example, for \code{d} = 3 and \code{gridTestSize} = 10, the number of
+  points in this grid is \eqn{10^3 = 1000}. Therefore, in higher dimensions (
+  \eqn{d > 4}), the simulation will default to \code{gridTest = FALSE} if
+  \code{gridTestSize} is left unspecified, and \code{nTest} test locations
+  will be randomly selected on \eqn{[0, 1]^d}.}
+}}
 }
 \value{
 An instance of S4 class \code{bcgpsims}
@@ -52,10 +72,14 @@ noise) Gaussian process model.
 \details{
 \code{simulate_from_model} returns an instance of S4 class \code{bcgpsims}.
 This object can then be plotted to get an idea of what draws from these
-models look like or the data in the object can be fit.
+models look like, or the data in the object can be fit.
 }
 \examples{
 simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
+
+params <- createParameterList()
+params$w <- 0.99
+simulate_from_model(parameters = params, randomX = TRUE)
 }
 \seealso{
 \code{\link{createParameterList}} \linkS4class{bcgpsims}

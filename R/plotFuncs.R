@@ -1,4 +1,4 @@
-plotDataSims <- function(x, decomposition){
+plotDataSims <- function(x, decomposition, ...){
 
   if(decomposition){
 
@@ -11,14 +11,14 @@ plotDataSims <- function(x, decomposition){
               "Cannot plot decomposition for a composite process without the
               global, local, and error processes decomposed."))
 
-    toReturn <- suppressWarnings(plotDataSimsYGL(x))
+    toReturn <- suppressWarnings(plotDataSimsYGL(x, ...))
   }else{
-    toReturn <- suppressWarnings(plotDataSimsY(x))
+    toReturn <- suppressWarnings(plotDataSimsY(x, ...))
   }
   return(toReturn)
 }
 
-plotDataSimsYGL <- function(x){
+plotDataSimsYGL <- function(x, ...){
   d <- ncol(x@training$x)
 
   titleStat <- ifelse(x@stationary, "Stationary", "Non-Stationary")
@@ -62,12 +62,11 @@ plotDataSimsYGL <- function(x){
                      plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
-    # TODO: do plotting for 2-D data
     message(strwrap(prefix = " ", initial = "",
                     "The decomposition into global and local processes is not
                  plotted for 2-D data. The plot will be the overall process."))
 
-    dataPlot <- plotDataSimsY(x)
+    dataPlot <- plotDataSimsY(x, ...)
 
   }else{
     stop("Plotting is currently only supported for 1-D and 2-D data.")
@@ -75,8 +74,9 @@ plotDataSimsYGL <- function(x){
   return(dataPlot)
 }
 
-plotDataSimsY <- function(x){
+plotDataSimsY <- function(x, ...){
   d <- ncol(x@training$x)
+  dots <- list(...)
 
   titleStat <- ifelse(x@stationary, "Stationary", "Non-Stationary")
   titleComp <- ifelse(x@composite, "Composite", "Non-Composite")
@@ -110,7 +110,6 @@ plotDataSimsY <- function(x){
                      plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
-    # TODO: do plotting for 2-D data
 
     dataToPlotPred <- data.frame(x1 = x@test$x[,1], x2 = x@test$x[,2],
                              y = x@test$y, type = "test")
@@ -118,26 +117,53 @@ plotDataSimsY <- function(x){
                                  y = x@training$y, type = "training") %>%
       dplyr::bind_rows(dataToPlotPred)
 
-    dataPlot <- ggplot2::ggplot(data = dataToPlot,
-                                mapping = ggplot2::aes(x = x1, y = x2,
-                                                       color = y)) +
-      ggplot2::ggtitle(plotTitle) +
-      ggplot2::theme_classic() +
-      ggplot2::geom_point(mapping = ggplot2::aes(size = type)) +
-      ggplot2::scale_size_manual(name = NULL,
-                                 values = c("test" = 1, "training" = 4),
-                                 labels = c("True Process", "Observed Data"),
-                                 breaks = c("test", "training"),
-                                 guide = ggplot2::guide_legend(
-                                   override.aes = list(
-                                     size = c(1, 4),
-                                     shape = c(16, 16)))) +
-      ggplot2::scale_color_gradient2(name="Y(x)", mid = "yellow", low = "red",
-                                     high = "blue", midpoint = 0) +
-      ggplot2::theme(legend.position = "bottom",
-                     plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                     axis.title = ggplot2::element_text(size = 16)) +
-      ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
+    if(isTRUE(x@test$grid) && isTRUE(dots$raster)){
+      dataPlot <- ggplot2::ggplot(data = dplyr::filter(dataToPlot,
+                                                       type == "test"),
+                                         mapping = ggplot2::aes(x = x1, y = x2,
+                                                                fill = y)) +
+        ggplot2::ggtitle(plotTitle) +
+        ggplot2::theme_classic() +
+        ggplot2::geom_raster(interpolate = TRUE) +
+        ggplot2::scale_fill_gradientn(name = "Y(x)",
+                                      colors = c("red", "yellow", "blue")) +
+        ggplot2::theme(legend.position = "bottom",
+                       plot.title = ggplot2::element_text(size = 16,
+                                                          hjust = 0.5),
+                       axis.title = ggplot2::element_text(size = 16)) +
+        ggplot2::labs(x = expression(x[1]), y = expression(x[2])) +
+        ggplot2::geom_point(data = dplyr::filter(dataToPlot,
+                                                 type == "training"),
+                            mapping = ggplot2::aes(x = x1, y = x2, size = type),
+                            inherit.aes = FALSE) +
+        ggplot2::scale_size_manual(name = NULL,
+                                   values = c("training" = 1.5),
+                                   labels = c("Observed Data"),
+                                   breaks = c("training"))
+
+    }else{
+      dataPlot <- ggplot2::ggplot(data = dataToPlot,
+                                  mapping = ggplot2::aes(x = x1, y = x2,
+                                                         color = y)) +
+        ggplot2::ggtitle(plotTitle) +
+        ggplot2::theme_classic() +
+        ggplot2::geom_point(mapping = ggplot2::aes(size = type)) +
+        ggplot2::scale_size_manual(name = NULL,
+                                   values = c("test" = 1, "training" = 4),
+                                   labels = c("True Process", "Observed Data"),
+                                   breaks = c("test", "training"),
+                                   guide = ggplot2::guide_legend(
+                                     override.aes = list(
+                                       size = c(1, 4),
+                                       shape = c(16, 16)))) +
+        ggplot2::scale_color_gradient2(name="Y(x)", mid = "yellow", low = "red",
+                                       high = "blue", midpoint = 0) +
+        ggplot2::theme(legend.position = "bottom",
+                       plot.title = ggplot2::element_text(size = 16,
+                                                          hjust = 0.5),
+                       axis.title = ggplot2::element_text(size = 16)) +
+        ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
+    }
 
 
   }else{
@@ -146,8 +172,9 @@ plotDataSimsY <- function(x){
   return(dataPlot)
 }
 
-plotVarSims <- function(x){
+plotVarSims <- function(x, ...){
 
+  dots <- list(...)
   d <- ncol(x@training$x)
   if(d == 1){
     predV <- data.frame(x = x@test$x, y = x@parameters$VTest)
@@ -160,23 +187,41 @@ plotVarSims <- function(x){
       ggplot2::theme(plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
                      axis.title = ggplot2::element_text(size = 16))
   }else if(d == 2){
-    # TODO: do plotting for 2-D data
     predV <- data.frame(x1 = x@test$x[, 1], x2 = x@test$x[, 2],
                         y = x@parameters$VTest)
 
-    varPlot <- ggplot2::ggplot(data = predV,
-                               mapping = ggplot2::aes(x = x1, y = x2,
-                                                      color = y)) +
-      ggplot2::ggtitle("Non-Stationary BCGP:\nVariance Process") +
-      ggplot2::theme_classic() +
-      ggplot2::geom_point() +
-      ggplot2::scale_color_gradient2(name="Y(x)", mid = "yellow", low = "red",
-                                     high = "blue", midpoint = mean(predV$y)) +
-      ggplot2::theme(legend.position = "bottom",
-                     plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
-                     axis.title = ggplot2::element_text(size = 16)) +
-      ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
+    if(isTRUE(x@test$grid) && isTRUE(dots$raster)){
+      varPlot <- ggplot2::ggplot(data = predV,
+                                 mapping = ggplot2::aes(x = x1, y = x2,
+                                                        fill = y)) +
+        ggplot2::ggtitle("Non-Stationary BCGP:\nVariance Process") +
+        ggplot2::theme_classic() +
+        ggplot2::geom_raster(interpolate = TRUE) +
+        ggplot2::scale_fill_gradientn(name = expression(paste(sigma ^ 2, "(x)")),
+                                      colors = c("red", "yellow", "blue")) +
+        ggplot2::theme(legend.position = "bottom",
+                       plot.title = ggplot2::element_text(size = 16,
+                                                          hjust = 0.5),
+                       axis.title = ggplot2::element_text(size = 16)) +
+        ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
 
+    }else{
+      varPlot <- ggplot2::ggplot(data = predV,
+                                 mapping = ggplot2::aes(x = x1, y = x2,
+                                                        color = y)) +
+        ggplot2::ggtitle("Non-Stationary BCGP:\nVariance Process") +
+        ggplot2::theme_classic() +
+        ggplot2::geom_point() +
+        ggplot2::scale_color_gradient2(name = expression(paste(sigma ^ 2, "(x)")),
+                                       mid = "yellow", low = "red",
+                                       high = "blue",
+                                       midpoint = mean(predV$y)) +
+        ggplot2::theme(legend.position = "bottom",
+                       plot.title = ggplot2::element_text(size = 16,
+                                                          hjust = 0.5),
+                       axis.title = ggplot2::element_text(size = 16)) +
+        ggplot2::labs(x = expression(x[1]), y = expression(x[2]))
+    }
 
   }else{
     stop("Plotting is currently only supported for 1-D and 2-D data.")

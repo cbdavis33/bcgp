@@ -79,14 +79,26 @@ createInits  <- function(x, priors = createPriors(x), chains = 4){
   return(initList)
 }
 
-createXAndXTest <- function(d, n, nTest){
+createXAndXTest <- function(d, n, nTest, gridTest, randomX1D, gridTestSize){
 
   if(d == 1){
-    x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+    if(isTRUE(randomX1D)){
+      x <- matrix(sort(runif(n, 0, 1)), ncol = 1)
+    }else{
+      x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+    }
+
     xTest <- matrix(seq(0, 1, length.out = nTest), ncol = 1)
+
   }else{
     x <- createXMat(n, d)
-    xTest <- createXMat(nTest, d)
+    if(isTRUE(gridTest)){
+      oneSide <- seq(0, 1, length.out = gridTestSize)
+      xTest <- as.matrix(expand.grid(rep(list(oneSide), d)))
+    }else{
+      xTest <- createXMat(nTest, d)
+    }
+
   }
   return(list(x = x, xTest = xTest))
 }

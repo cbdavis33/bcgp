@@ -20,10 +20,33 @@ knitr::opts_chunk$set(
   )
 ```
 
-## Simulating from a BCGP model
+## Simulating from (and Plotting) a BCGP model
 
 Simulating from the [Bayesian Composite Gaussian Process](bcgp.html) model is 
 straightforward. The function [simulate_from_model](../help/simulate_from_model)
 has options that allow the user to simulate from a stationary or non-stationary
 model, a composite or non-composite model, deterministic or noisy data, and any
 combination of these.
+
+The arguments composite, stationary, and noise determine the type of model the 
+process will be generated from and are straightforward.
+
+```{r section1}
+
+nsComp1 <- simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
+z <- plot(nsComp1)
+
+```
+
+Other parameters can control the dimension of the data (d), the number of 
+training data locations (n), and the number of test data locations (nTest):
+
+```{r section2}
+
+nsComp2 <- simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE, d = 2, n = 25, nTest = 75)
+z <- plot(nsComp2)
+
+```
+
+The two simulations above were simulated with randomly generated parameters. The
+user can choose the parameters for the model if they wish. 
