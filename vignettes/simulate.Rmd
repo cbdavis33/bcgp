@@ -33,7 +33,8 @@ the process will be generated from and are straightforward.
 
 ```{r section1}
 
-nsComp1 <- simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
+nsComp1 <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                               noise = FALSE)
 z <- plot(nsComp1)
 
 ```
@@ -43,10 +44,28 @@ training data locations (n), and the number of test data locations (nTest):
 
 ```{r section2}
 
-nsComp2 <- simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE, d = 2, n = 25, nTest = 75)
+nsComp2 <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                               noise = FALSE, d = 2, n = 25, nTest = 75)
 z <- plot(nsComp2)
 
 ```
 
 The two simulations above were simulated with randomly generated parameters. The
-user can choose the parameters for the model if they wish. 
+user can choose the parameters for the model if they wish. It is best to first 
+use the helper function `createParameterList()`, which creates a list of 
+parameters, modify that list, and then use that list as the `parameters` 
+argument in the `simulate_from_model()` function.
+
+```{r section3}
+
+params <- createParameterList(composite = FALSE, stationary = TRUE,
+                              noise = FALSE, d = 1)
+params
+params$rho <- 0.9
+params
+
+changeParams <- simulate_from_model(composite = FALSE, stationary = TRUE, 
+                               parameters = params)
+plot(changeParams, process = "y")
+
+```
