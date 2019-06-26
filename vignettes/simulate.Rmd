@@ -28,8 +28,8 @@ has options that allow the user to simulate from a stationary or non-stationary
 model, a composite or non-composite model, deterministic or noisy data, and any
 combination of these.
 
-The arguments composite, stationary, and noise determine the type of model the 
-process will be generated from and are straightforward.
+The arguments `composite`, `stationary`, and `noise` determine the type of model
+the process will be generated from and are straightforward.
 
 ```{r section1}
 
