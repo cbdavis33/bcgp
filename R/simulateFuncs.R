@@ -91,6 +91,7 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                         stationary = stationary,
                         d = d)
 
+  set.seed(seed)
   data <- simulateY(x = x, xTest = xTest, parameters = parameters,
                     stationary = stationary, composite = composite,
                     decomposition = decomposition, seed = seed)

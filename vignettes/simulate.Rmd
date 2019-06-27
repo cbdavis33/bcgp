@@ -39,8 +39,8 @@ z <- plot(nsComp1)
 
 ```
 
-Other parameters can control the dimension of the data (d), the number of 
-training data locations (n), and the number of test data locations (nTest):
+Other parameters can control the dimension of the data (`d`), the number of 
+training data locations (`n`), and the number of test data locations (`nTest`):
 
 ```{r section2}
 
@@ -66,6 +66,55 @@ params
 
 changeParams <- simulate_from_model(composite = FALSE, stationary = TRUE, 
                                parameters = params)
-plot(changeParams, process = "y")
+z <- plot(changeParams, process = "y")
+
+```
+
+The `seed` can be set for reproducibility and is straightforward.
+
+The optional parameter `randomX1D` is a parameter that is relevant only with one-dimensional training data and determines whether the training data locations should be equally spaced or if they should be randomly sampled on $[0, 1]$. 
+
+```{r section4}
+
+params <- createParameterList(composite = TRUE, stationary = FALSE,
+                              noise = FALSE, d = 1)
+
+randomX <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                               randomX1D = TRUE, seed = 4384836)
+
+seqX <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                            randomX1D = FALSE, seed = 4384836)
+
+p1 <- plot(randomX, process = "y", print = FALSE)
+p2 <- plot(seqX, process = "y", print = FALSE)
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+
+```
+
+The optional parameter `gridTest` indicates wheter the test data should be 
+generated on a grid. For example, if `gridTest = FALSE`, then `nTest` test data locations are randomly selected on $[0, 1]^d$. However, if `gridTest = TRUE` and
+`gridTestSize`, the number of points per dimension, is specified, then the 
+$gridTestSize^d$ test data locations are generated on a grid on $[0, 1]^d$ with
+`gridTestSize` points for each dimension.
+
+```{r section5}
+
+params <- createParameterList(composite = TRUE, stationary = FALSE,
+                              noise = FALSE, d = 2)
+
+randomXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,
+                                  parameters = params, gridTest = FALSE, 
+                                  seed = 4384836)
+
+gridXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,
+                                 parameters = params, 
+                                 gridTest = TRUE, gridTestSize = 10,
+                                 seed = 4384836)
+
+p3 <- plot(randomXTest, process = "y", print = FALSE)
+p4 <- plot(gridXTest, process = "y", print = FALSE)
+
+gridExtra::grid.arrange(p3, p4, ncol = 2)
 
 ```
