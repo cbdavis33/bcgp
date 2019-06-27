@@ -4,12 +4,12 @@
 \name{WW}
 \alias{WW}
 \title{Wing Weight Data}
-\format{A list with elements \code{x, y, xPred, yPred}
+\format{A list with elements \code{x, y, xTest, yTest}
 \describe{
   \item{x}{training data locations}
   \item{y}{training data values}
-  \item{xPred}{test data locations}
-  \item{yPred}{test data values}
+  \item{xTest}{test data locations}
+  \item{yTest}{test data values}
 }}
 \source{
 TODO: add source

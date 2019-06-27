@@ -5,7 +5,6 @@
 
 .onAttach <- function(...) {
   bcgpLib <- dirname(system.file(package = "bcgp"))
-  print(bcgpLib)
   # pkgdesc <- packageDescription("bcgp", lib.loc = bcgpLib)
   pkgdesc <- packageDescription("bcgp")
   packageStartupMessage(paste("bcgp (Version ", pkgdesc$Version,")", sep = ""))

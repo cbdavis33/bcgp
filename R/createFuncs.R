@@ -79,6 +79,39 @@ createInits  <- function(x, priors = createPriors(x), chains = 4){
   return(initList)
 }
 
+createXAndXTest <- function(d, n, nTest, gridTest, randomX1D, gridTestSize){
+
+  if(d == 1){
+    if(isTRUE(randomX1D)){
+      x <- matrix(sort(runif(n, 0, 1)), ncol = 1)
+    }else{
+      x <- matrix(seq(0, 1, length.out = n), ncol = 1)
+    }
+
+    xTest <- matrix(seq(0, 1, length.out = nTest), ncol = 1)
+
+  }else{
+    x <- createXMat(n, d)
+    if(isTRUE(gridTest)){
+      oneSide <- seq(0, 1, length.out = gridTestSize)
+      xTest <- as.matrix(expand.grid(rep(list(oneSide), d)))
+    }else{
+      xTest <- createXMat(nTest, d)
+    }
+
+  }
+  return(list(x = x, xTest = xTest))
+}
+
+createXMat <- function(n, d){
+  if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
+    x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
+  }else{
+    x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
+  }
+  return(x)
+}
+
 #' Create a list with random parameter values.
 #'
 #' \code{createParameterList} returns a list that contains randomly generated
@@ -88,7 +121,11 @@ createInits  <- function(x, priors = createPriors(x), chains = 4){
 #' model corresponding to inputs \code{composite}, \code{stationary},
 #' \code{noise}, and \code{d}. This function is meant to set up the parameters
 #' before a call to \code{simulate_from_model}. The user can modify the list of
-#' parameter values if desired.
+#' parameter values if desired. If a non-stationary model is desired, the
+#' parameters that define the variance process,
+#' \eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}, will be returned and can then be
+#' modified, but the variance process itself will not be returned and cannot be
+#' specified.
 #'
 #' @param composite A logical, \code{TRUE} for a composite of a global process
 #' and a local process, \code{FALSE} for non-composite. Defaults to \code{TRUE}.
@@ -100,107 +137,44 @@ createInits  <- function(x, priors = createPriors(x), chains = 4){
 #' computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
 #' should be \code{TRUE}. Defaults to \code{FALSE}
 #' @param d An integer giving the dimension of the data.
-#' @param ... Arguments \code{n}, \code{nPred}, \code{x}, and \code{xPred} that
-#' are only necessary for non-stationary processes. If left unspecified, lack of
-#' input for \code{n} and \code{nPred} will throw an error. If \code{x} and
-#' \code{xPred} are left unspecified, these matrices will be randomly generated
-#' on \eqn{[0, 1]^d}. If specified, \code{x} will be scaled to \eqn{[0, 1]^d}
-#' before variance parameters are generated, and \code{xPred} will be scaled
-#' based on the scaling of {x} before variance parameters are generated.
+#' @return A list of randomly-generated parameter values corresponding to the
+#' BCGP model described by \code{composite}, \code{stationary}, \code{noise},
+#' and \code{d}.
 #' @family preprocessing functions
 #' @seealso \code{\link{simulate_from_model}}
 #' @examples
-#' createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE, d = 1)
-#' createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1,
-#'                     n = 15, nPred = 100)
+#' createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE,
+#'                     d = 2)
+#' createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE,
+#'                     d = 1)
 #' @export
 createParameterList <- function(composite = TRUE, stationary = FALSE,
-                                noise = FALSE, d = 1, ...,
-                                n = 15, nPred = 100){
+                                noise = FALSE, d = 1){
 
-  xMats <- list(...)
   if(composite == TRUE){
     if(stationary == FALSE){
-      if(!("x" %in% names(xMats)) && "xPred" %in% names(xMats)){
-        stop("Please don't specify 'xPred' without specifying 'x' also.")
-      }
-
-      if(!("x" %in% names(xMats))){
-        if(d == 1){
-          x <- matrix(seq(0, 1, length.out = n), ncol = 1)
-          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
-        }else{
-          x <- createXMat(n, d)
-          xPred <- createXMat(nPred, d)
-        }
-      }else if("x" %in% names(xMats) && !("xPred" %in% names(xMats))){
-        x <- matrix(scaleX(xMats[["x"]]), ncol = d)
-        if(d == 1){
-          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
-        }else{
-          xPred <- createXMat(nPred, d)
-        }
-      }else{
-        x <- scaleX(xMats[["x"]])
-        xPred <- sapply(1:d, function(t)(xMats[["xPred"]][, t] -
-                                           attr(x, "scaled:minimum")[t])/
-                          attr(x, "scaled:range")[t])
-      }
-      paramList <- createParamCompNS(d, x, xPred)
+      paramList <- createParamCompNS(d)
     }else{ # composite == TRUE, stationary == TRUE
       paramList <- createParamCompS(d)
     }
   }else{
     if(stationary == FALSE){
-      if(!("x" %in% names(xMats)) && "xPred" %in% names(xMats)){
-        stop("Please don't specify 'xPred' without specifying 'x' also.")
-      }
-
-      if(!("x" %in% names(xMats))){
-        if(d == 1){
-          x <- matrix(seq(0, 1, length.out = n), ncol = 1)
-          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
-        }else{
-          x <- createXMat(n, d)
-          xPred <- createXMat(nPred, d)
-        }
-      }else if("x" %in% names(xMats) && !("xPred" %in% names(xMats))){
-        x <- matrix(scaleX(xMats[["x"]]), ncol = d)
-        if(d == 1){
-          xPred <- matrix(seq(0, 1, length.out = nPred), ncol = 1)
-        }else{
-          xPred <- createXMat(nPred, d)
-        }
-      }else{
-        x <- scaleX(xMats[["x"]])
-        xPred <- sapply(1:d, function(t)(xMats[["xPred"]][, t] -
-                                           attr(x, "scaled:minimum")[t])/
-                          attr(x, "scaled:range")[t])
-      }
-      paramList <-createParamNonCompNS(d, x, xPred)
-    }else{ # composite == TRUE, stationary == TRUE
+      paramList <-createParamNonCompNS(d)
+    }else{ # composite == FALSE, stationary == TRUE
       paramList <- createParamNonCompS(d)
     }
   }
-
-  paramList$sig2eps <- ifelse(noise == TRUE, rgamma(1, 0.1, scale = 0.1), 0)
+  paramList$sig2eps <- ifelse(noise == TRUE, rgamma(1, 2, scale = 0.01), 0)
   return(paramList)
 }
 
-createParamCompNS <- function(d, x, xPred){
-
-  n <- nrow(x)
-  nPred <- nrow(xPred)
+createParamCompNS <- function(d){
 
   rhoG <- runif(d)
   rhoL <- runif(d, 0, rhoG)
   muV <- -0.1
   sig2V <- 0.1
   rhoV <- runif(d)
-  K <- sig2V * getCorMatR(rbind(x, xPred), rhoV) + 1e-10*diag(n + nPred)
-  VAndVPred <- exp(MASS::mvrnorm(1, muV*rep(1, n + nPred), K))
-  V <- VAndVPred[1:n]
-  VPred <- VAndVPred[-(1:n)]
 
   paramList <- list(beta0 = 0,
                     w = runif(1, 0.5, 1),
@@ -208,9 +182,7 @@ createParamCompNS <- function(d, x, xPred){
                     rhoL = rhoL,
                     muV = muV,
                     sig2V = sig2V,
-                    rhoV = rhoV,
-                    V = V,
-                    VPred = VPred)
+                    rhoV = rhoV)
   return(paramList)
 
 }
@@ -226,26 +198,17 @@ createParamCompS <- function(d){
   return(paramList)
 }
 
-createParamNonCompNS <- function(d, x, xPred){
-
-  n <- nrow(x)
-  nPred <- nrow(xPred)
+createParamNonCompNS <- function(d){
 
   muV <- -0.1
   sig2V <- 0.1
   rhoV <- runif(d)
-  K <- sig2V * getCorMatR(rbind(x, xPred), rhoV) + 1e-10*diag(n + nPred)
-  VAndVPred <- exp(MASS::mvrnorm(1, muV*rep(1, n + nPred), K))
-  V <- VAndVPred[1:n]
-  VPred <- VAndVPred[-(1:n)]
 
   paramList <- list(beta0 = 0,
                     rho = runif(d),
                     muV = muV,
                     sig2V = sig2V,
-                    rhoV = rhoV,
-                    V = V,
-                    VPred = VPred)
+                    rhoV = rhoV)
   return(paramList)
 }
 
@@ -256,10 +219,4 @@ createParamNonCompS <- function(d){
   return(paramList)
 }
 
-createXMat <- function(n, d){
-  if(requireNamespace("lhs", quietly = TRUE) && n <= 50 && d <= 5){
-    x <- matrix(scaleX(lhs::optimumLHS(n, d)), ncol = d)
-  }else{
-    x <- matrix(scaleX(matrix(runif(n * d), nrow = n, ncol = d)), ncol = d)
-  }
-}
+

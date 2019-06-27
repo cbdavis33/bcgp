@@ -14,9 +14,9 @@ BJXSim <- function(x){
 
 x <- matrix(c(seq(0, .4 + .4/11, by = .4/11), seq(0.5, 1, by = 0.5/3)), ncol = 1)
 y <- as.vector(BJXSim(x))
-xPred <- matrix(seq(0, 1, by = 0.01))
-yPred <- as.vector(BJXSim(xPred))
+xTest <- matrix(seq(0, 1, by = 0.01))
+yTest <- as.vector(BJXSim(xTest))
 
-BJX <- list(x = x, y = y, xPred = xPred, yPred = yPred)
+BJX <- list(x = x, y = y, xTest = xTest, yTest = yTest)
 
 usethis::use_data(BJX, overwrite = TRUE)

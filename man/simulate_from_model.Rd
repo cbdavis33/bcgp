@@ -5,7 +5,10 @@
 \title{Simulate from the model}
 \usage{
 simulate_from_model(composite = TRUE, stationary = FALSE,
-  noise = FALSE, n = 15, nPred = 100, d = 1, parameters, ...)
+  noise = FALSE, d = 1L, n = 15 * d, nTest = 100 * d,
+  parameters = createParameterList(composite, stationary, noise, d),
+  decomposition = FALSE, seed = sample.int(.Machine$integer.max, 1),
+  ...)
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process
@@ -20,43 +23,64 @@ process is \eqn{\sigma^2(x)}, and if \code{TRUE}, the variance is
 computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
 should be \code{TRUE}. Defaults to \code{FALSE}}
 
-\item{n}{An integer giving the number of training data locations.}
-
-\item{nPred}{An integer giving the number of test data locations.}
-
 \item{d}{An integer giving the dimension of the data.}
+
+\item{n}{An integer giving the desired number of training data locations.}
+
+\item{nTest}{An integer giving the desired number of test data locations.}
 
 \item{parameters}{A list containing desired parameter values. If missing,
 then parameter values will be drawn at random. A call to
 \code{createParameterList()} will assist in the correct creation of this
 list.}
 
-\item{...}{Arguments \code{x} and \code{xPred}. If left unspecified, these
-matrices will be randomly generated on \eqn{[0, 1]^d}. If specified, \code{x}
-will be scaled to \eqn{[0, 1]^d} before data is generated, and \code{xPred}
-will be scaled based on the scaling of {x}.}
+\item{decomposition}{A logical indicating whether to return the global, local
+and error processes along with the overall process. If \code{composite =
+FALSE}, then this argument will be ignored. Defaults to FALSE.}
+
+\item{seed}{A numeric value indicating the seed for random number generation.
+\code{as.integer} will be applied to the value before setting the seed for
+the random number generator. The default is generated from 1 to the maximum
+integer supported by R on the machine.}
+
+\item{...}{optional parameters
+\describe{
+  \item{\code{randomX1D}}{A logical indicating whether the training data
+  should be generated in a sequence, \code{seq(0, 1, length.out = n)}, or
+  randomly generated from [0, 1]. Defaults to \code{FALSE} (sequence). Only
+  useful for 1-D data.}
+  \item{\code{gridTest}}{A logical indicating whether the test data should be
+  generated on a grid. Defaults to \code{FALSE}. Only useful for
+  \eqn{d \geq 2}.}
+  \item{\code{gridTestSize}}{An integer indicating the number of points per
+  dimension for the test grid. Only useful for \eqn{d \geq 2}.}
+  \item{}{Be aware that a grid in high dimensions quickly gets very large.
+  For example, for \code{d} = 3 and \code{gridTestSize} = 10, the number of
+  points in this grid is \eqn{10^3 = 1000}. Therefore, in higher dimensions (
+  \eqn{d > 4}), the simulation will default to \code{gridTest = FALSE} if
+  \code{gridTestSize} is left unspecified, and \code{nTest} test locations
+  will be randomly selected on \eqn{[0, 1]^d}.}
+}}
 }
 \value{
-A list with elements \code{x} (an \emph{n x d} matrix), \code{y} (a
-vector of length \emph{n}), \code{xPred} (an \emph{nPred x d} matrix), and
-\code{yPred} (a vector of length \emph{nPred}) corresponding to training
-locations, training responses, test locations, and test responses,
-respectively, and element \code{parameters}, which contains the parameters
-used to simulate the data.
+An instance of S4 class \code{bcgpsims}
 }
 \description{
-This function simulates data from the specified (stationary, composite,
+This function simulates data from the specified (by stationary, composite,
 noise) Gaussian process model.
 }
 \details{
-\code{simulate_from_model} returns a list with elements \code{x}, \code{y},
-\code{xPred}, \code{yPred}, corresponding to training locations, training
-responses, test locations, and test responses, respectively, and element
-\code{parameters}, which contains the parameters used to simulate the data.
+\code{simulate_from_model} returns an instance of S4 class \code{bcgpsims}.
+This object can then be plotted to get an idea of what draws from these
+models look like, or the data in the object can be fit.
 }
 \examples{
-simulate_from_model(stationary = FALSE, composite = TRUE, noise = FALSE)
+simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
+
+params <- createParameterList()
+params$w <- 0.99
+simulate_from_model(parameters = params, randomX = TRUE)
 }
 \seealso{
-\code{\link{createParameterList}}
+\code{\link{createParameterList}} \linkS4class{bcgpsims}
 }

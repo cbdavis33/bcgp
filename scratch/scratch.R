@@ -14,7 +14,7 @@ BJX <- function(x){
 
 xTrain <- matrix(c(seq(0, .4 + .4/11, by = .4/11), seq(0.5, 1, by = 0.5/3)), ncol = 1)
 yTrain <- BJX(xTrain)
-xPred <- matrix(sort(c(xTrain, seq(min(xTrain), max(xTrain), 0.005))), ncol = 1)
+xTest <- matrix(sort(c(xTrain, seq(min(xTrain), max(xTrain), 0.005))), ncol = 1)
 
 chains <- 1
 

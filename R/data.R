@@ -5,12 +5,12 @@
 #' cos\left(2\left( x - 0.9\right)\right) + \frac{x - 0.9}{2}, \;\;\;\;
 #' x \in [0, 1]} used in the paper
 #'
-#' @format A list with elements \code{x, y, xPred, yPred}
+#' @format A list with elements \code{x, y, xTest, yTest}
 #' \describe{
 #'   \item{x}{training data locations}
 #'   \item{y}{training data values}
-#'   \item{xPred}{test data locations}
-#'   \item{yPred}{test data values}
+#'   \item{xTest}{test data locations}
+#'   \item{yTest}{test data values}
 #' }
 #' @source TODO: add source
 "BJX"
@@ -21,12 +21,12 @@
 #' A dataset containing the training data and test data from
 #' the heat exchange example used in the paper
 #'
-#' @format A list with elements \code{x, y, xPred, yPred}
+#' @format A list with elements \code{x, y, xTest, yTest}
 #' \describe{
 #'   \item{x}{training data locations}
 #'   \item{y}{training data values}
-#'   \item{xPred}{test data locations}
-#'   \item{yPred}{test data values}
+#'   \item{xTest}{test data locations}
+#'   \item{yTest}{test data values}
 #' }
 #' @source TODO: add source
 "HE"
@@ -37,12 +37,12 @@
 #' A dataset containing the training data and test data from
 #' the wing weight example used in the paper
 #'
-#' @format A list with elements \code{x, y, xPred, yPred}
+#' @format A list with elements \code{x, y, xTest, yTest}
 #' \describe{
 #'   \item{x}{training data locations}
 #'   \item{y}{training data values}
-#'   \item{xPred}{test data locations}
-#'   \item{yPred}{test data values}
+#'   \item{xTest}{test data locations}
+#'   \item{yTest}{test data values}
 #' }
 #' @source TODO: add source
 "WW"

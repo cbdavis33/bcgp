@@ -5,7 +5,7 @@
 \title{Create a list with random parameter values.}
 \usage{
 createParameterList(composite = TRUE, stationary = FALSE,
-  noise = FALSE, d = 1, ..., n = 15, nPred = 100)
+  noise = FALSE, d = 1)
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process
@@ -21,14 +21,11 @@ computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
 should be \code{TRUE}. Defaults to \code{FALSE}}
 
 \item{d}{An integer giving the dimension of the data.}
-
-\item{...}{Arguments \code{n}, \code{nPred}, \code{x}, and \code{xPred} that
-are only necessary for non-stationary processes. If left unspecified, lack of
-input for \code{n} and \code{nPred} will throw an error. If \code{x} and
-\code{xPred} are left unspecified, these matrices will be randomly generated
-on \eqn{[0, 1]^d}. If specified, \code{x} will be scaled to \eqn{[0, 1]^d}
-before variance parameters are generated, and \code{xPred} will be scaled
-based on the scaling of {x} before variance parameters are generated.}
+}
+\value{
+A list of randomly-generated parameter values corresponding to the
+BCGP model described by \code{composite}, \code{stationary}, \code{noise},
+and \code{d}.
 }
 \description{
 \code{createParameterList} returns a list that contains randomly generated
@@ -39,12 +36,17 @@ This creates a list that contains randomly generated parameter values for a
 model corresponding to inputs \code{composite}, \code{stationary},
 \code{noise}, and \code{d}. This function is meant to set up the parameters
 before a call to \code{simulate_from_model}. The user can modify the list of
-parameter values if desired.
+parameter values if desired. If a non-stationary model is desired, the
+parameters that define the variance process,
+\eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}, will be returned and can then be
+modified, but the variance process itself will not be returned and cannot be
+specified.
 }
 \examples{
-createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE, d = 1)
-createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1,
-                    n = 15, nPred = 100)
+createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE,
+                    d = 2)
+createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE,
+                    d = 1)
 }
 \seealso{
 \code{\link{simulate_from_model}}

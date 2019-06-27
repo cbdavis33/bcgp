@@ -1,3 +1,4 @@
+^bcgp\.Rmd$
 ^data-raw$
 ^scratch$
 ^.*\.Rproj$

@@ -1,0 +1,150 @@
+---
+title: "Simulate from the BCGP Model"
+author: "Casey Davis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulate from BCGP Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(bcgp)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  comment = NA,
+  fig.align = "center",
+  fig.height = 5,
+  fig.width = 8
+  )
+```
+
+## Simulating from (and Plotting) a BCGP model
+
+Simulating from the [Bayesian Composite Gaussian Process](bcgp.html) model is 
+straightforward. The function [simulate_from_model](../help/simulate_from_model)
+has options that allow the user to simulate from a stationary or non-stationary
+model, a composite or non-composite model, deterministic or noisy data, and any
+combination of these.
+
+The arguments `composite`, `stationary`, and `noise` determine the type of model
+the process will be generated from and are straightforward.
+
+```{r section1}
+
+nsComp1 <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                               noise = FALSE)
+z <- plot(nsComp1)
+
+```
+
+Other parameters can control the dimension of the data (`d`), the number of 
+training data locations (`n`), and the number of test data locations (`nTest`):
+
+```{r section2}
+
+nsComp2 <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                               noise = FALSE, d = 2, n = 25, nTest = 75)
+z <- plot(nsComp2)
+
+```
+
+The two simulations above were simulated with randomly generated parameters. The
+user can choose the parameters for the model if they wish. It is best to first 
+use the helper function `createParameterList()`, which creates a list of 
+parameters, modify that list, and then use that list as the `parameters` 
+argument in the `simulate_from_model()` function.
+
+```{r section3}
+
+params <- createParameterList(composite = FALSE, stationary = TRUE,
+                              noise = FALSE, d = 1)
+params
+params$rho <- 0.9
+params
+
+changeParams <- simulate_from_model(composite = FALSE, stationary = TRUE, 
+                               parameters = params)
+z <- plot(changeParams, process = "y")
+
+```
+
+The `seed` argument can be set for reproducibility and is straightforward.
+
+If the `decompositon` argument is `TRUE`, then the simulation will return the
+global, local, and error processes along with the overall process. It is ignored
+if `composite` is `FALSE`.
+
+```{r section4}
+
+decomp <- simulate_from_model(composite = TRUE, stationary = FALSE, 
+                              noise = FALSE, d = 1, decomposition = TRUE,
+                              seed = 701691)
+z <- plot(decomp, process = "y", decomposition = TRUE)
+
+```
+
+
+The optional argument `randomX1D` is  relevant only with one-dimensional 
+training data and determines whether the training data locations should be 
+equally spaced or if they should be randomly sampled on $[0, 1]$. 
+
+```{r section5}
+
+params <- createParameterList(composite = TRUE, stationary = TRUE,
+                              noise = FALSE, d = 1)
+
+randomX <- simulate_from_model(composite = TRUE, stationary = TRUE,
+                               randomX1D = TRUE, parameters = params)
+
+seqX <- simulate_from_model(composite = TRUE, stationary = TRUE,
+                            randomX1D = FALSE, parameters = params)
+
+p1 <- plot(randomX, process = "y", print = FALSE)
+p2 <- plot(seqX, process = "y", print = FALSE)
+
+gridExtra::grid.arrange(p1, p2, ncol = 2)
+
+```
+
+The optional parameter `gridTest` indicates wheter the test data should be 
+generated on a grid. For example, if `gridTest = FALSE`, then `nTest` test data
+locations are randomly selected on $[0, 1]^d$. However, if `gridTest = TRUE` and
+`gridTestSize`, the number of points per dimension, is specified, then the 
+$gridTestSize^d$ test data locations are generated on a grid on $[0, 1]^d$ with
+`gridTestSize` points for each dimension.
+
+```{r section6}
+
+params <- createParameterList(composite = TRUE, stationary = FALSE,
+                              noise = FALSE, d = 2)
+
+randomXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,
+                                  parameters = params, gridTest = FALSE, 
+                                  seed = 4384836)
+
+gridXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,
+                                 parameters = params, 
+                                 gridTest = TRUE, gridTestSize = 10,
+                                 seed = 4384836)
+
+p3 <- plot(randomXTest, process = "y", print = FALSE)
+p4 <- plot(gridXTest, process = "y", print = FALSE)
+
+gridExtra::grid.arrange(p3, p4, ncol = 2)
+
+```
+
+One reason for the option for the grid is plotting. If `gridTest = TRUE`, then 
+the plot (in 2-D) can be made with the `geom_raster` function in the `ggplot2`
+package.
+
+```{r raster}
+
+p5 <- plot(gridXTest, process = "y", print = FALSE, raster = FALSE)
+p6 <- plot(gridXTest, process = "y", print = FALSE, raster = TRUE)
+
+gridExtra::grid.arrange(p5, p6, ncol = 2)
+
+```

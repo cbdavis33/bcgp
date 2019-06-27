@@ -3,7 +3,6 @@
 #' \code{getCorMatR} returns a correlation matrix.
 #'
 #' This creates a correlation matrix, \emph{R}, where \deqn{R_{ij} = \prod_{k =
-#' 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}}{R_ij = \prod_{k =
 #' 1}^{d}\rho_k^{16\left( x_{ik} - x_{jk} \right)^2}}
 #'
 #' @param x An \emph{n x d} matrix, where \emph{d} is the dimension of the data.
@@ -126,7 +125,7 @@ getCovMatNSR <- function(V, R, sig2eps){
 #' getCovMatSR(V, R, sig2)
 #' @export
 getCovMatSR <- function(sigma2, R, sigma2eps){
-  sigma2 * R + diag(sigma2eps, nrow = 4)
+  sigma2 * R + diag(sigma2eps, nrow = nrow(R))
 }
 
 #' Combine correlation matrices.

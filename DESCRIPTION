@@ -10,11 +10,15 @@ Description: What the package does (one paragraph).
 License: GPL (>=3)
 Depends: 
     methods,
-    R (>= 3.4.0),
+    R (>= 3.5.0),
     Rcpp (>= 1.0.1)
 Imports: 
     rstan (>= 2.18.2),
-    rstantools (>= 1.5.1)
+    rstantools (>= 1.5.1),
+    ggplot2,
+    dplyr,
+    tidyr,
+    magrittr
 LinkingTo: 
     BH (>= 1.69.0-1),
     Rcpp (>= 1.0.1),
@@ -27,4 +31,7 @@ NeedsCompilation: yes
 SystemRequirements: GNU make
 RoxygenNote: 6.1.1
 Suggests: 
-    lhs
+    lhs,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
