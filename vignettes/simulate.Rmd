@@ -136,7 +136,7 @@ gridExtra::grid.arrange(p3, p4, ncol = 2)
 
 ```
 
-One reason for the option for the grid is plotting. Ig `gridTest = TRUE`, then 
+One reason for the option for the grid is plotting. If `gridTest = TRUE`, then 
 the plot (in 2-D) can be made with the `geom_raster` function in the `ggplot2`
 package.
 
