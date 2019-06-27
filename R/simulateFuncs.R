@@ -129,26 +129,30 @@ simulateY <- function(x, xTest, parameters,
   if(composite == TRUE){
     if(decomposition == TRUE){
       data <- simulateYGL(x = x, xTest = xTest, parameters = parameters,
-                          stationary = stationary)
+                          stationary = stationary, seed = seed)
     }else{
       if(stationary == FALSE){
-        data <- simulateYCompNS(x = x, xTest = xTest, parameters = parameters)
+        data <- simulateYCompNS(x = x, xTest = xTest, parameters = parameters,
+                                seed = seed)
       }else{ # composite == TRUE, stationary == TRUE
-        data <- simulateYCompS(x = x, xTest = xTest, parameters = parameters)
+        data <- simulateYCompS(x = x, xTest = xTest, parameters = parameters,
+                               seed = seed)
       }
     }
   }else{
     if(stationary == FALSE){
-      data <- simulateYNonCompNS(x, xTest, parameters)
+      data <- simulateYNonCompNS(x, xTest, parameters, seed = seed)
     }else{ # composite == FALSE, stationary == TRUE
-      data <- simulateYNonCompS(x, xTest, parameters)
+      data <- simulateYNonCompS(x, xTest, parameters, seed = seed)
     }
   }
 
   return(data)
 }
 
-simulateYCompNS <- function(x, xTest, parameters){
+simulateYCompNS <- function(x, xTest, parameters, seed){
+
+  set.seed(seed)
 
   n <- nrow(x)
   nTest <- nrow(xTest)
@@ -177,7 +181,9 @@ simulateYCompNS <- function(x, xTest, parameters){
 
 }
 
-simulateYCompS <- function(x, xTest, parameters){
+simulateYCompS <- function(x, xTest, parameters, seed){
+
+  set.seed(seed)
 
   n <- nrow(x)
   nTest <- nrow(xTest)
@@ -198,7 +204,9 @@ simulateYCompS <- function(x, xTest, parameters){
 
 }
 
-simulateYNonCompNS <- function(x, xTest, parameters){
+simulateYNonCompNS <- function(x, xTest, parameters, seed){
+
+  set.seed(seed)
 
   n <- nrow(x)
   nTest <- nrow(xTest)
@@ -222,7 +230,9 @@ simulateYNonCompNS <- function(x, xTest, parameters){
   return(data)
 }
 
-simulateYNonCompS <- function(x, xTest, parameters){
+simulateYNonCompS <- function(x, xTest, parameters, seed){
+
+  set.seed(seed)
 
   n <- nrow(x)
   nTest <- nrow(xTest)
@@ -241,19 +251,23 @@ simulateYNonCompS <- function(x, xTest, parameters){
 
 }
 
-simulateYGL <- function(x, xTest, parameters, stationary){
+simulateYGL <- function(x, xTest, parameters, stationary, seed){
+
+  set.seed(seed)
 
   G <- getCorMatR(rbind(x, xTest), parameters$rhoG)
   L <- getCorMatR(rbind(x, xTest), parameters$rhoL)
 
   if(stationary){
-    data <- simulateYGLS(x, xTest, parameters, G, L)
+    data <- simulateYGLS(x, xTest, parameters, G, L, seed)
   }else{
-    data <- simulateYGLNS(x, xTest, parameters, G, L)
+    data <- simulateYGLNS(x, xTest, parameters, G, L, seed)
   }
 }
 
-simulateYGLNS <- function(x, xTest, parameters, G, L){
+simulateYGLNS <- function(x, xTest, parameters, G, L, seed){
+
+  set.seed(seed)
 
   n <- nrow(x)
   nTest <- nrow(xTest)
@@ -289,7 +303,9 @@ simulateYGLNS <- function(x, xTest, parameters, G, L){
 
 }
 
-simulateYGLS <- function(x, xTest, parameters, G, L){
+simulateYGLS <- function(x, xTest, parameters, G, L, seed){
+
+  set.seed(seed)
 
   n <- nrow(x)
   nTest <- nrow(xTest)
