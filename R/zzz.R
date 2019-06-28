@@ -6,7 +6,7 @@
 .onAttach <- function(...) {
   bcgpLib <- dirname(system.file(package = "bcgp"))
   # pkgdesc <- packageDescription("bcgp", lib.loc = bcgpLib)
-  pkgdesc <- packageDescription("bcgp")
+  pkgdesc <- utils::packageDescription("bcgp")
   packageStartupMessage(paste("bcgp (Version ", pkgdesc$Version,")", sep = ""))
   packageStartupMessage("For execution on a local, multicore CPU with excess RAM call\n",
                         "options(mc.cores = parallel::detectCores()).")

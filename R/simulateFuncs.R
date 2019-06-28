@@ -55,7 +55,7 @@
 #'
 #' params <- createParameterList()
 #' params$w <- 0.99
-#' simulate_from_model(parameters = params, randomX = TRUE)
+#' simulate_from_model(parameters = params, randomX1D = TRUE)
 #' @export
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, d = 1L, n = 15*d, nTest = 100*d,

@@ -79,7 +79,7 @@ simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 
 params <- createParameterList()
 params$w <- 0.99
-simulate_from_model(parameters = params, randomX = TRUE)
+simulate_from_model(parameters = params, randomX1D = TRUE)
 }
 \seealso{
 \code{\link{createParameterList}} \linkS4class{bcgpsims}

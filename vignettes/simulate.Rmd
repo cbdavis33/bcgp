@@ -121,13 +121,11 @@ params <- createParameterList(composite = TRUE, stationary = FALSE,
                               noise = FALSE, d = 2)
 
 randomXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,
-                                  parameters = params, gridTest = FALSE, 
-                                  seed = 4384836)
+                                  parameters = params, gridTest = FALSE)
 
 gridXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,
                                  parameters = params, 
-                                 gridTest = TRUE, gridTestSize = 10,
-                                 seed = 4384836)
+                                 gridTest = TRUE, gridTestSize = 10)
 
 p3 <- plot(randomXTest, process = "y", print = FALSE)
 p4 <- plot(gridXTest, process = "y", print = FALSE)
