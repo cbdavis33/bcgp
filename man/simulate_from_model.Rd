@@ -6,7 +6,7 @@
 \usage{
 simulate_from_model(composite = TRUE, stationary = FALSE,
   noise = FALSE, d = 1L, n = 15 * d, nTest = 100 * d,
-  parameters = createParameterList(composite, stationary, noise, d),
+  parameters = create_parameter_list(composite, stationary, noise, d),
   decomposition = FALSE, seed = sample.int(.Machine$integer.max, 1),
   ...)
 }
@@ -31,7 +31,7 @@ should be \code{TRUE}. Defaults to \code{FALSE}}
 
 \item{parameters}{A list containing desired parameter values. If missing,
 then parameter values will be drawn at random. A call to
-\code{createParameterList()} will assist in the correct creation of this
+\code{create_parameter_list()} will assist in the correct creation of this
 list.}
 
 \item{decomposition}{A logical indicating whether to return the global, local
@@ -77,10 +77,10 @@ models look like, or the data in the object can be fit.
 \examples{
 simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 
-params <- createParameterList()
+params <- create_parameter_list()
 params$w <- 0.99
 simulate_from_model(parameters = params, randomX1D = TRUE)
 }
 \seealso{
-\code{\link{createParameterList}} \linkS4class{bcgpsims}
+\code{\link{create_parameter_list}} \linkS4class{bcgpsims}
 }

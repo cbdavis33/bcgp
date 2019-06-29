@@ -24,7 +24,7 @@ z <- plot(nsComp2)
 
 ## ----section3------------------------------------------------------------
 
-params <- createParameterList(composite = FALSE, stationary = TRUE,
+params <- create_parameter_list(composite = FALSE, stationary = TRUE,
                               noise = FALSE, d = 1)
 params
 params$rho <- 0.9
@@ -45,7 +45,7 @@ z <- plot(decomp, process = "y", decomposition = TRUE)
 
 ## ----section5------------------------------------------------------------
 
-params <- createParameterList(composite = TRUE, stationary = TRUE,
+params <- create_parameter_list(composite = TRUE, stationary = TRUE,
                               noise = FALSE, d = 1)
 
 randomX <- simulate_from_model(composite = TRUE, stationary = TRUE,
@@ -62,7 +62,7 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 
 ## ----section6------------------------------------------------------------
 
-params <- createParameterList(composite = TRUE, stationary = FALSE,
+params <- create_parameter_list(composite = TRUE, stationary = FALSE,
                               noise = FALSE, d = 2)
 
 randomXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,

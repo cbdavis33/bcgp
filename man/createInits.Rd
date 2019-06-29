@@ -4,7 +4,7 @@
 \alias{createInits}
 \title{Create a list with initial values.}
 \usage{
-createInits(x, priors = createPriors(x), chains = 4)
+createInits(x, priors = create_priors(x), chains = 4)
 }
 \arguments{
 \item{x}{An \code{n x d} matrix containing the independent variables
@@ -35,12 +35,12 @@ inputting the list into \code{bcgp}.
 \examples{
 x <- matrix(runif(40), ncol= 4, nrow = 10)
 createInits(x)
-createInits(x, priors = createPriors(x, noise = TRUE), chains = 2)
+createInits(x, priors = create_priors(), chains = 2)
 }
 \seealso{
 \code{\link{bcgp}}
 
-Other preprocessing functions: \code{\link{createParameterList}},
-  \code{\link{createPriors}}
+Other preprocessing functions: \code{\link{create_parameter_list}},
+  \code{\link{create_priors}}
 }
 \concept{preprocessing functions}

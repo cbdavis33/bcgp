@@ -21,7 +21,7 @@
 #' @param nTest An integer giving the desired number of test data locations.
 #' @param parameters A list containing desired parameter values. If missing,
 #' then parameter values will be drawn at random. A call to
-#' \code{createParameterList()} will assist in the correct creation of this
+#' \code{create_parameter_list()} will assist in the correct creation of this
 #' list.
 #' @param decomposition A logical indicating whether to return the global, local
 #' and error processes along with the overall process. If \code{composite =
@@ -49,17 +49,17 @@
 #'   will be randomly selected on \eqn{[0, 1]^d}.}
 #' }
 #' @return An instance of S4 class \code{bcgpsims}
-#' @seealso \code{\link{createParameterList}} \linkS4class{bcgpsims}
+#' @seealso \code{\link{create_parameter_list}} \linkS4class{bcgpsims}
 #' @examples
 #' simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 #'
-#' params <- createParameterList()
+#' params <- create_parameter_list()
 #' params$w <- 0.99
 #' simulate_from_model(parameters = params, randomX1D = TRUE)
 #' @export
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, d = 1L, n = 15*d, nTest = 100*d,
-                                parameters = createParameterList(composite,
+                                parameters = create_parameter_list(composite,
                                                                  stationary,
                                                                  noise, d),
                                 decomposition = FALSE,

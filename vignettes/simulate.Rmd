@@ -52,13 +52,13 @@ z <- plot(nsComp2)
 
 The two simulations above were simulated with randomly generated parameters. The
 user can choose the parameters for the model if they wish. It is best to first 
-use the helper function `createParameterList()`, which creates a list of 
+use the helper function `create_parameter_list()`, which creates a list of 
 parameters, modify that list, and then use that list as the `parameters` 
 argument in the `simulate_from_model()` function.
 
 ```{r section3}
 
-params <- createParameterList(composite = FALSE, stationary = TRUE,
+params <- create_parameter_list(composite = FALSE, stationary = TRUE,
                               noise = FALSE, d = 1)
 params
 params$rho <- 0.9
@@ -92,7 +92,7 @@ equally spaced or if they should be randomly sampled on $[0, 1]$.
 
 ```{r section5}
 
-params <- createParameterList(composite = TRUE, stationary = TRUE,
+params <- create_parameter_list(composite = TRUE, stationary = TRUE,
                               noise = FALSE, d = 1)
 
 randomX <- simulate_from_model(composite = TRUE, stationary = TRUE,
@@ -117,7 +117,7 @@ $gridTestSize^d$ test data locations are generated on a grid on $[0, 1]^d$ with
 
 ```{r section6}
 
-params <- createParameterList(composite = TRUE, stationary = FALSE,
+params <- create_parameter_list(composite = TRUE, stationary = FALSE,
                               noise = FALSE, d = 2)
 
 randomXTest <- simulate_from_model(composite = TRUE, stationary = FALSE, d = 2,

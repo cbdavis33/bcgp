@@ -1,27 +1,74 @@
 #' Create a list with prior information.
 #'
-#' \code{createPriors} returns a list that contains default values for the priors.
+#' \code{create_priors} returns an instance of S4 class \code{bcgppriors}
 #'
-#' This creates a list that contains default values for the priors. The user
-#' can change the values as they like prior to inputting the list into
-#' \code{bcgp}.
+#' This creates an instance of S4 class \code{bcgppriors} that contains default
+#' values for the priors, information about the process, and information about
+#' the distributions. The user can change the values as they like prior to
+#' fitting any data with \code{\link{bcgp}}.
 #'
-#' @param x An \code{n x d} matrix containing the independent variables
-#' in the training set.
-#' @param noise If the data is assumed to be noise-free, then
-#' \code{noise} should be \code{FALSE}. Otherwise, it should be
-#' \code{TRUE}.
-#' @return A list containing the default values for all the prior parameters.
+#' @param composite A logical, \code{TRUE} for a composite of a global process,
+#' a local process, and an error process, \code{FALSE} for non-composite.
+#' Defaults to \code{TRUE}.
+#' @param stationary A logical, \code{FALSE} for a non-stationary process,
+#' \code{TRUE} for a stationary process. If \code{FALSE}, the variance for the
+#' process is \eqn{\sigma^2(x)}, and if \code{TRUE}, the variance is
+#' \eqn{\sigma^2}. Defaults to \code{FALSE}.
+#' @param noise If the data should be noise-free (such as from a deterministic
+#' computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
+#' should be \code{TRUE}. Defaults to \code{FALSE}
+#' @param d An integer giving the dimension of the data.
+#' @return An instance of S4 class \code{bcgppriors} containing the default
+#' values for all the prior parameters, information about the process, and
+#' information about the distributions.
 #' @family preprocessing functions
 #' @seealso \code{\link{bcgp}}
-#' @section TODO: Decide whether to add options for "heteroscedastic" and "composite"
 #' @examples
-#' x <- matrix(runif(40), ncol= 4, nrow = 10)
-#' createPriors(x)
-#' createPriors(x, noise = TRUE)
+#' create_priors(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1)
+#' create_priors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
 #' @export
-createPriors  <- function(x, noise = FALSE){
-  d <- ncol(x)
+create_priors  <- function(composite = TRUE, stationary = FALSE,
+                           noise = FALSE, d = 1L){
+
+  d <- as.integer(d)
+
+  if(isTRUE(composite)){
+    if(isFALSE(stationary)){
+      ## composite, non- stationary
+      priorInfo <- createPriorsCompNS(d)
+    }else{
+      ## composite, stationary
+      priorInfo <- createPriorsCompS(d)
+    }
+  }else{
+    if(isFALSE(stationary)){
+      ## non-composite, non- stationary
+      priorInfo <- createPriorsNonCompNS(d)
+    }else{
+      ## non-composite, stationary
+      priorInfo <- createPriorsNonCompS(d)
+    }
+  }
+
+  if(isFALSE(noise)){
+    priorInfo$priors$sig2eps <- list(alpha = 1e-3,
+                                     beta = 1e-3)
+  }else{
+    priorInfo$priors$sig2eps <- list(alpha = 1e-1,
+                                     beta = 1e-1)
+  }
+
+  toReturn <- new("bcgppriors",
+                  priors = priorInfo$priors,
+                  distributions = priorInfo$distributions,
+                  stationary = stationary,
+                  composite = composite,
+                  noise = noise)
+
+  return(toReturn)
+}
+
+createPriorsCompNS <- function(d){
   priorList <- list(w = list(lower = 0.5,
                              upper = 1.0,
                              alpha = 1,
@@ -36,18 +83,70 @@ createPriors  <- function(x, noise = FALSE){
                                 beta = rep(1, d)),
                     sig2V = list(alpha = 2 + sqrt(0.1),
                                  beta = 100/(1+sqrt(1/10))))
+  priorDists <- list(beta0 = "noninformative",
+                     w = "TrBeta(lower, upper, alpha, beta)",
+                     rhoG = "Beta(alpha, beta)",
+                     rhoL = "TrBeta(0, rhoG, alpha, beta)",
+                     sig2eps = "Gamma(alpha, scale = beta)",
+                     muV = "Lognormal(betaV, variance = sig2)",
+                     rhoV = "Beta(alpha, beta)",
+                     sig2V = "Inverse Gamma(alpha, beta)")
 
-  if(!noise){
-    priorList$sig2eps <- list(alpha = 1e-3,
-                              beta = 1e-3)
-  }else{
-    priorList$sig2eps <- list(alpha = 1e-1,
-                              beta = 1e-1)
-  }
-
-  return(priorList)
+  return(list(priors = priorList, distributions = priorDists))
 }
 
+createPriorsCompS <- function(d){
+  priorList <- list(w = list(lower = 0.5,
+                             upper = 1.0,
+                             alpha = 1,
+                             beta = 1),
+                    rhoG = list(alpha = rep(1, d),
+                                beta = rep(1, d)),
+                    rhoL = list(alpha = rep(1, d),
+                                beta = rep(1, d)),
+                    sigma2 = list(alpha = 1,
+                                  beta = 1))
+  priorDists <- list(beta0 = "noninformative",
+                     w = "TrBeta(lower, upper, alpha, beta)",
+                     rhoG = "Beta(alpha, beta)",
+                     rhoL = "TrBeta(0, rhoG, alpha, beta)",
+                     sig2eps = "Gamma(alpha, scale = beta)",
+                     sigma2 = "Gamma(alpha, scale = beta)")
+
+  return(list(priors = priorList, distributions = priorDists))
+}
+
+createPriorsNonCompNS <- function(d){
+  priorList <- list(rho = list(alpha = rep(1, d),
+                               beta = rep(1, d)),
+                    muV = list(betaV = -0.1,
+                               sig2 = 0.1),
+                    rhoV = list(alpha = rep(1, d),
+                                beta = rep(1, d)),
+                    sig2V = list(alpha = 2 + sqrt(0.1),
+                                 beta = 100/(1+sqrt(1/10))))
+  priorDists <- list(beta0 = "noninformative",
+                     rho = "Beta(alpha, beta)",
+                     sig2eps = "Gamma(alpha, beta)",
+                     muV = "Lognormal(betaV, variance = sig2)",
+                     rhoV = "Beta(alpha, beta)",
+                     sig2V = "Inverse Gamma(alpha, beta)")
+
+  return(list(priors = priorList, distributions = priorDists))
+}
+
+createPriorsNonCompS <- function(d){
+  priorList <- list(rho = list(alpha = rep(1, d),
+                               beta = rep(1, d)),
+                    sigma2 = list(alpha = 1,
+                                  beta = 1))
+  priorDists <- list(beta0 = "noninformative",
+                     rho = "Beta(alpha, beta)",
+                     sig2eps = "Gamma(alpha, beta)",
+                     sigma2 = "Gamma(alpha, beta)")
+
+  return(list(priors = priorList, distributions = priorDists))
+}
 
 #' Create a list with initial values.
 #'
@@ -71,9 +170,9 @@ createPriors  <- function(x, noise = FALSE){
 #' @examples
 #' x <- matrix(runif(40), ncol= 4, nrow = 10)
 #' createInits(x)
-#' createInits(x, priors = createPriors(x, noise = TRUE), chains = 2)
+#' createInits(x, priors = create_priors(), chains = 2)
 #' @export
-createInits  <- function(x, priors = createPriors(x), chains = 4){
+createInits  <- function(x, priors = create_priors(x), chains = 4){
   initList <- vector("list", length = chains)
   initList <- lapply(initList, initFunc, priors = priors, x = x)
   return(initList)
@@ -114,7 +213,7 @@ createXMat <- function(n, d){
 
 #' Create a list with random parameter values.
 #'
-#' \code{createParameterList} returns a list that contains randomly generated
+#' \code{create_parameter_list} returns a list that contains randomly generated
 #' parameter values.
 #'
 #' This creates a list that contains randomly generated parameter values for a
@@ -143,12 +242,12 @@ createXMat <- function(n, d){
 #' @family preprocessing functions
 #' @seealso \code{\link{simulate_from_model}}
 #' @examples
-#' createParameterList(composite = FALSE, stationary = TRUE, noise = FALSE,
+#' create_parameter_list(composite = FALSE, stationary = TRUE, noise = FALSE,
 #'                     d = 2)
-#' createParameterList(composite = TRUE, stationary = FALSE, noise = FALSE,
+#' create_parameter_list(composite = TRUE, stationary = FALSE, noise = FALSE,
 #'                     d = 1)
 #' @export
-createParameterList <- function(composite = TRUE, stationary = FALSE,
+create_parameter_list <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, d = 1){
 
   if(composite == TRUE){

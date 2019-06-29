@@ -79,7 +79,7 @@ log GP.
  
 An example of a draw from this process follows:
 ```{r nscExample}
-paramsNSC <- createParameterList()
+paramsNSC <- create_parameter_list()
 # paramsNSC$w <- 0.9
 paramsNSC$w <- 0.7
 paramsNSC$rhoG <- 0.7
@@ -124,7 +124,7 @@ varies with $\mathbf{x}$. In a stationary model, this variance is constant. That
 is, the variance does not depend on $\mathbf{x}$, so the variance is the 
 constant, $\sigma^2$. An example of a draw from this process follows:
 ```{r scExample}
-params <- createParameterList(composite = TRUE, stationary = TRUE)
+params <- create_parameter_list(composite = TRUE, stationary = TRUE)
 # params$w <- 0.9
 params$w <- 0.7
 params$rhoG <- 0.7
@@ -153,7 +153,7 @@ For a non-composite model, the random process is decomposed into
 
 An example of a draw from this process follows:
 ```{r nsncExample}
-params <- createParameterList(composite = FALSE, stationary = FALSE)
+params <- create_parameter_list(composite = FALSE, stationary = FALSE)
 params$rho <- 0.7
 params$muV <- -0.3
 params$sig2V <- 0.5
@@ -176,7 +176,7 @@ gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 This is the most typical model when people think of GP regression. An example of
 a draw from this process follows:
 ```{r sncExample}
-paramsSNC <- createParameterList(composite = FALSE, stationary = TRUE)
+paramsSNC <- create_parameter_list(composite = FALSE, stationary = TRUE)
 paramsSNC$rho <- 0.7
 paramsSNC$sigma2 <- 1
 paramsSNC$sig2eps <- 0

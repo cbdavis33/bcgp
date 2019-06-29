@@ -9,7 +9,7 @@ knitr::opts_chunk$set(
   )
 
 ## ----nscExample----------------------------------------------------------
-paramsNSC <- createParameterList()
+paramsNSC <- create_parameter_list()
 # paramsNSC$w <- 0.9
 paramsNSC$w <- 0.7
 paramsNSC$rhoG <- 0.7
@@ -33,7 +33,7 @@ gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
 
 ## ----scExample-----------------------------------------------------------
-params <- createParameterList(composite = TRUE, stationary = TRUE)
+params <- create_parameter_list(composite = TRUE, stationary = TRUE)
 # params$w <- 0.9
 params$w <- 0.7
 params$rhoG <- 0.7
@@ -51,7 +51,7 @@ plot(nsc, process = "y", decomposition = TRUE, print = FALSE)
 
 
 ## ----nsncExample---------------------------------------------------------
-params <- createParameterList(composite = FALSE, stationary = FALSE)
+params <- create_parameter_list(composite = FALSE, stationary = FALSE)
 params$rho <- 0.7
 params$muV <- -0.3
 params$sig2V <- 0.5
@@ -69,7 +69,7 @@ gridExtra::grid.arrange(dataPlot, sigmaPlot, ncol = 2)
 
 
 ## ----sncExample----------------------------------------------------------
-paramsSNC <- createParameterList(composite = FALSE, stationary = TRUE)
+paramsSNC <- create_parameter_list(composite = FALSE, stationary = TRUE)
 paramsSNC$rho <- 0.7
 paramsSNC$sigma2 <- 1
 paramsSNC$sig2eps <- 0

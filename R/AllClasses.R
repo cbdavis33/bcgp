@@ -42,10 +42,17 @@ setClass(Class = "bcgpsims",
                    parameters = "list",
                    stationary = "logical",
                    composite = "logical",
-                   seed = "integer"))
+                   seed = "integer"),
+         prototype = list(training = list(),
+                          test = list(),
+                          parameters = list(),
+                          stationary = logical(),
+                          composite = logical(),
+                          seed = NA_integer_))
 
 setClass(Class = "bcgppriors",
          slots = c(priors = "list",
+                   distributions = "list",
                    stationary = "logical",
                    composite = "logical",
                    noise = "logical"))
