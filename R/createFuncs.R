@@ -1,11 +1,12 @@
-#' Create a list with prior information.
+#' Create an object of class bcgppriors
 #'
 #' \code{create_priors} returns an instance of S4 class \code{bcgppriors}
 #'
 #' This creates an instance of S4 class \code{bcgppriors} that contains default
 #' values for the priors, information about the process, and information about
 #' the distributions. The user can change the values as they like prior to
-#' fitting any data with \code{\link{bcgp}}.
+#' fitting any data with \code{\link{bcgp}}. \code{bcgppriors()} can also be
+#' called to create a \code{bcgppriors} object.
 #'
 #' @param composite A logical, \code{TRUE} for a composite of a global process,
 #' a local process, and an error process, \code{FALSE} for non-composite.
@@ -22,13 +23,14 @@
 #' values for all the prior parameters, information about the process, and
 #' information about the distributions.
 #' @family preprocessing functions
-#' @seealso \code{\link{bcgp}}
+#' @seealso \linkS4class{bcgppriors} \code{\link{bcgppriors}}
+#' \code{\link{bcgp}}
 #' @examples
 #' create_priors(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1)
 #' create_priors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
 #' @export
-create_priors  <- function(composite = TRUE, stationary = FALSE,
-                           noise = FALSE, d = 1L){
+create_priors <- function(composite = TRUE, stationary = FALSE,
+                          noise = FALSE, d = 1L){
 
   d <- as.integer(d)
 
@@ -219,9 +221,9 @@ createXMat <- function(n, d){
 #' This creates a list that contains randomly generated parameter values for a
 #' model corresponding to inputs \code{composite}, \code{stationary},
 #' \code{noise}, and \code{d}. This function is meant to set up the parameters
-#' before a call to \code{simulate_from_model}. The user can modify the list of
-#' parameter values if desired. If a non-stationary model is desired, the
-#' parameters that define the variance process,
+#' before a call to \code{simulate_from_model()} or to \code{bcgpsims()}. The
+#' user can modify the list of parameter values if desired. If a non-stationary
+#' model is desired, the parameters that define the variance process,
 #' \eqn{[\mu_V,\rho_V,\sigma^2_V]^\top}, will be returned and can then be
 #' modified, but the variance process itself will not be returned and cannot be
 #' specified.
@@ -240,7 +242,7 @@ createXMat <- function(n, d){
 #' BCGP model described by \code{composite}, \code{stationary}, \code{noise},
 #' and \code{d}.
 #' @family preprocessing functions
-#' @seealso \code{\link{simulate_from_model}}
+#' @seealso \code{\link{simulate_from_model}} \code{\link{bcgpsims}}
 #' @examples
 #' create_parameter_list(composite = FALSE, stationary = TRUE, noise = FALSE,
 #'                     d = 2)
@@ -248,22 +250,24 @@ createXMat <- function(n, d){
 #'                     d = 1)
 #' @export
 create_parameter_list <- function(composite = TRUE, stationary = FALSE,
-                                noise = FALSE, d = 1){
+                                  noise = FALSE, d = 1L){
 
-  if(composite == TRUE){
-    if(stationary == FALSE){
+  d <- as.integer(d)
+
+  if(isTRUE(composite)){
+    if(isFALSE(stationary)){
       paramList <- createParamCompNS(d)
     }else{ # composite == TRUE, stationary == TRUE
       paramList <- createParamCompS(d)
     }
   }else{
-    if(stationary == FALSE){
+    if(isFALSE(stationary)){
       paramList <-createParamNonCompNS(d)
     }else{ # composite == FALSE, stationary == TRUE
       paramList <- createParamNonCompS(d)
     }
   }
-  paramList$sig2eps <- ifelse(noise == TRUE, rgamma(1, 2, scale = 0.01), 0)
+  paramList$sig2eps <- ifelse(isTRUE(noise), rgamma(1, 2, scale = 0.01), 0)
   return(paramList)
 }
 

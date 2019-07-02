@@ -86,14 +86,14 @@ x1Ainvx2 <- function(x1, A, x2){
 
 validateParameterList <- function(parameters, composite, stationary, d){
 
-  if(composite == TRUE){
-    if(stationary == FALSE){
+  if(isTRUE(composite)){
+    if(isFALSE(stationary)){
       validateParamsCompNS(parameters, d)
     }else{ # composite == TRUE, stationary == TRUE
       validateParamsCompS(parameters, d)
     }
   }else{
-    if(stationary == FALSE){
+    if(isFALSE(stationary)){
       validateParamsNonCompNS(parameters, d)
     }else{ # composite == FALSE, stationary == TRUE
       validateParamsNonCompS(parameters, d)

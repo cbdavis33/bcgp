@@ -26,7 +26,8 @@ Simulating from the [Bayesian Composite Gaussian Process](bcgp.html) model is
 straightforward. The function [simulate_from_model](../help/simulate_from_model)
 has options that allow the user to simulate from a stationary or non-stationary
 model, a composite or non-composite model, deterministic or noisy data, and any
-combination of these.
+combination of these. NOTE: the function [bcgpsims](../help/bcgpsims) can be
+substituted for `simulate_from_model()`. These two functions create identical S4 objects of class `bcgpsims`. It is the user's preference. 
 
 The arguments `composite`, `stationary`, and `noise` determine the type of model
 the process will be generated from and are straightforward.

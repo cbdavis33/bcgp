@@ -104,7 +104,7 @@ bcgp  <- function(x, y, composite = TRUE, stationary = FALSE,
          before inputting your list.")
   }
 
-  if(scaled == FALSE){
+  if(isFALSE(scaled)){
     cat("Scaling increases interpretability and mixing for the samplers.\n",
         "In fact, the samplers might not work at all if left unscaled.\n",
         "Also, the default priors might not make sense for unscaled data.\n",
@@ -130,14 +130,14 @@ bcgp  <- function(x, y, composite = TRUE, stationary = FALSE,
   algorithm = match.arg(algorithm)
 
   if(algorithm == "Stan"){
-    if(composite == TRUE){
-      if(stationary == FALSE){
+    if(isTRUE(composite)){
+      if(isFALSE(stationary)){
 
       }else{ # composite == TRUE, stationary == TRUE
 
       }
     }else{
-      if(stationary == FALSE){
+      if(isFALSE(stationary)){
 
       }else{ # composite == FALSE, stationary == TRUE
 

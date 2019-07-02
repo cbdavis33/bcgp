@@ -2,7 +2,7 @@ plotDataSims <- function(x, decomposition, ...){
 
   if(decomposition){
 
-    if(x@composite == FALSE)
+    if(isFALSE(x@composite))
       stop(strwrap(prefix = " ", initial = "",
               "Cannot plot decomposition for non-composite processes"))
 

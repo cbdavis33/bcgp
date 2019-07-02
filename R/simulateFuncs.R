@@ -6,6 +6,8 @@
 #' \code{simulate_from_model} returns an instance of S4 class \code{bcgpsims}.
 #' This object can then be plotted to get an idea of what draws from these
 #' models look like, or the data in the object can be fit.
+#' \code{bcgpsims()} can also be called to create a \code{bcgpsims}
+#' object that contains simulated data
 #'
 #' @param composite A logical, \code{TRUE} for a composite of a global process
 #' and a local process, \code{FALSE} for non-composite. Defaults to \code{TRUE}.
@@ -49,7 +51,8 @@
 #'   will be randomly selected on \eqn{[0, 1]^d}.}
 #' }
 #' @return An instance of S4 class \code{bcgpsims}
-#' @seealso \code{\link{create_parameter_list}} \linkS4class{bcgpsims}
+#' @seealso \linkS4class{bcgpsims} \code{\link{bcgpsims}}
+#' \code{\link{create_parameter_list}}
 #' @examples
 #' simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
 #'
@@ -60,8 +63,8 @@
 simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                                 noise = FALSE, d = 1L, n = 15*d, nTest = 100*d,
                                 parameters = create_parameter_list(composite,
-                                                                 stationary,
-                                                                 noise, d),
+                                                                   stationary,
+                                                                   noise, d),
                                 decomposition = FALSE,
                                 seed = sample.int(.Machine$integer.max, 1),
                                 ...){
@@ -69,7 +72,7 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
   extraArgs <- simsUnpackDots(d, ...)
 
   seed <- checkSeed(seed)
-  if(composite == FALSE && decomposition == TRUE){
+  if(isFALSE(composite) && isTRUE(decomposition)){
     warning(strwrap(prefix = " ", initial = "",
                     "Non-Composite models do not decompose into global and local
                     processes. If you really want to simulate global and local
@@ -96,7 +99,7 @@ simulate_from_model <- function(composite = TRUE, stationary = FALSE,
                     stationary = stationary, composite = composite,
                     decomposition = decomposition, seed = seed)
 
-  if(decomposition == FALSE){
+  if(isFALSE(decomposition)){
     toReturn <- new("bcgpsims",
                     training = list(x = x, y = data$y),
                     test = list(x = xTest, y = data$yTest,
@@ -126,12 +129,12 @@ simulateY <- function(x, xTest, parameters,
                       decomposition, seed = seed){
 
   set.seed(seed)
-  if(composite == TRUE){
-    if(decomposition == TRUE){
+  if(isTRUE(composite)){
+    if(isTRUE(decomposition)){
       data <- simulateYGL(x = x, xTest = xTest, parameters = parameters,
                           stationary = stationary, seed = seed)
     }else{
-      if(stationary == FALSE){
+      if(isFALSE(stationary)){
         data <- simulateYCompNS(x = x, xTest = xTest, parameters = parameters,
                                 seed = seed)
       }else{ # composite == TRUE, stationary == TRUE
@@ -140,7 +143,7 @@ simulateY <- function(x, xTest, parameters,
       }
     }
   }else{
-    if(stationary == FALSE){
+    if(isFALSE(stationary)){
       data <- simulateYNonCompNS(x, xTest, parameters, seed = seed)
     }else{ # composite == FALSE, stationary == TRUE
       data <- simulateYNonCompS(x, xTest, parameters, seed = seed)
@@ -338,7 +341,8 @@ simsUnpackDots <- function(d, ...){
   dots <- list(...)
 
   dotsNames <- names(dots)
-  gridTest <- ifelse("gridTest" %in% dotsNames && is.logical(dots$gridTest),
+  gridTest <- ifelse("gridTest" %in% dotsNames &&
+                       (isTRUE(dots$gridTest) || isFALSE(dots$gridTest)),
                      dots$gridTest, FALSE)
 
   if(gridTest){
@@ -368,7 +372,8 @@ simsUnpackDots <- function(d, ...){
   }
 
 
-  randomX <- ifelse("randomX1D" %in% dotsNames && is.logical(dots$randomX1D),
+  randomX <- ifelse("randomX1D" %in% dotsNames &&
+                      (isTRUE(dots$randomX1D) || isFALSE(dots$randomX1D)),
                     dots$randomX1D, FALSE)
 
   return(list(randomX = randomX, gridTest = gridTest,

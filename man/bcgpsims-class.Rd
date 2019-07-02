@@ -9,8 +9,9 @@ This class contains training and test data simulated directly from the BCGP
 model along with some other information about the type of model the data was
 simulated from (composite/non-composite, stationary/non-stationary,
 deterministic/noisy). It will most commonly be useful after a call to
-\code{simulate_from_model}. The \code{bcgpsims} model can then be plotted or
-sent to the function \code{bcgp_sampling} to fit the model.
+\code{simulate_from_model()} or \code{bcgpsims()}. The \code{bcgpsims} model
+can then be plotted or sent to the function \code{bcgp_sampling} to fit the
+model.
 }
 \section{Slots}{
 
@@ -47,7 +48,8 @@ model.}
 
 \examples{
 simulate_from_model(composite = TRUE, stationary = FALSE, noise = FALSE)
+bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE)
 }
 \seealso{
-\code{\link{simulate_from_model}}
+\code{\link{simulate_from_model}} \code{\link{bcgpsims}}
 }

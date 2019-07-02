@@ -40,7 +40,8 @@ createInits(x, priors = create_priors(), chains = 2)
 \seealso{
 \code{\link{bcgp}}
 
-Other preprocessing functions: \code{\link{create_parameter_list}},
+Other preprocessing functions: \code{\link{bcgppriors}},
+  \code{\link{create_parameter_list}},
   \code{\link{create_priors}}
 }
 \concept{preprocessing functions}
