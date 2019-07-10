@@ -180,6 +180,85 @@ createInits  <- function(x, priors = create_priors(x), chains = 4){
   return(initList)
 }
 
+createInitsCompNS <- function(initList, priors, x){
+
+  d <- ncol(x)
+  n <- nrow(x)
+
+  initReturn <- vector("list")
+  initReturn$beta0 <- rnorm(1, 0, 1)
+  initReturn$w <- priors$w$lower + rbeta(1, priors$w$alpha, priors$w$beta)*
+    (priors$w$upper - priors$w$lower)
+  initReturn$rhoG <- rbeta(d, priors$rhoG$alpha, priors$rhoG$beta)
+  initReturn$rhoL <- initReturn$rhoG * rbeta(d, priors$rhoL$alpha, priors$rhoL$beta)
+  initReturn$sig2eps <- max(2* .Machine$double.eps,
+                            rgamma(1, shape = priors$sig2eps$alpha,
+                                   scale = priors$sig2eps$beta))
+  initReturn$muV <- rnorm(1, priors$muV$betaV, sqrt(priors$muV$sig2))
+  initReturn$rhoV <- rbeta(d, priors$rhoV$alpha, priors$rhoV$beta)
+  initReturn$sig2V <- 1/rgamma(1, priors$sig2V$alpha, scale = priors$sig2V$beta)
+  K <- getCovMatSR(initReturn$sig2V, getCorMatR(x, initReturn$rhoV), 1e-10)
+  initReturn$V <- exp(MASS::mvrnorm(1, initReturn$muV*rep(1, n), K))
+  return(initReturn)
+
+}
+
+createInitsCompS <- function(initList, priors){
+
+  d <- length(priors$rhoG$alpha)
+
+  initReturn <- vector("list")
+  initReturn$beta0 <- rnorm(1, 0, 1)
+  initReturn$w <- priors$w$lower + rbeta(1, priors$w$alpha, priors$w$beta)*
+    (priors$w$upper - priors$w$lower)
+  initReturn$rhoG <- rbeta(d, priors$rhoG$alpha, priors$rhoG$beta)
+  initReturn$rhoL <- initReturn$rhoG * rbeta(d, priors$rhoL$alpha, priors$rhoL$beta)
+  initReturn$sig2eps <- max(2* .Machine$double.eps,
+                            rgamma(1, shape = priors$sig2eps$alpha,
+                                   scale = priors$sig2eps$beta))
+  initReturn$sigma2 <- rgamma(1, shape = priors$sigma2$alpha,
+                              scale = priors$sigma2$beta)
+  return(initReturn)
+
+}
+
+createInitsNonCompNS <- function(initList, priors, x){
+
+  d <- ncol(x)
+  n <- nrow(x)
+
+  initReturn <- vector("list")
+  initReturn$beta0 <- rnorm(1, 0, 1)
+  initReturn$rho <- rbeta(d, priors$rho$alpha, priors$rho$beta)
+  initReturn$sig2eps <- max(2* .Machine$double.eps,
+                            rgamma(1, shape = priors$sig2eps$alpha,
+                                   scale = priors$sig2eps$beta))
+  initReturn$muV <- rnorm(1, priors$muV$betaV, sqrt(priors$muV$sig2))
+  initReturn$rhoV <- rbeta(d, priors$rhoV$alpha, priors$rhoV$beta)
+  initReturn$sig2V <- 1/rgamma(1, priors$sig2V$alpha, scale = priors$sig2V$beta)
+  K <- getCovMatSR(initReturn$sig2V, getCorMatR(x, initReturn$rhoV), 1e-10)
+  initReturn$V <- exp(MASS::mvrnorm(1, initReturn$muV*rep(1, n), K))
+  return(initReturn)
+
+}
+
+createInitsNonCompS <- function(initList, priors){
+
+  d <- length(priors$rho$alpha)
+
+  initReturn <- vector("list")
+  initReturn$beta0 <- rnorm(1, 0, 1)
+  initReturn$rho <- rbeta(d, priors$rho$alpha, priors$rho$beta)
+  initReturn$sig2eps <- max(2* .Machine$double.eps,
+                            rgamma(1, shape = priors$sig2eps$alpha,
+                                   scale = priors$sig2eps$beta))
+  initReturn$sigma2 <- rgamma(1, shape = priors$sigma2$alpha,
+                              scale = priors$sigma2$beta)
+  return(initReturn)
+
+}
+
+
 createXAndXTest <- function(d, n, nTest, gridTest, randomX1D, gridTestSize){
 
   if(d == 1){

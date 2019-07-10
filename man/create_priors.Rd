@@ -48,6 +48,7 @@ create_priors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
 
 Other preprocessing functions: \code{\link{bcgppriors}},
   \code{\link{createInits}},
+  \code{\link{create_inits,bcgppriors-method}},
   \code{\link{create_parameter_list}}
 }
 \concept{preprocessing functions}

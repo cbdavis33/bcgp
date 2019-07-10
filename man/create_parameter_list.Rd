@@ -5,7 +5,7 @@
 \title{Create a list with random parameter values.}
 \usage{
 create_parameter_list(composite = TRUE, stationary = FALSE,
-  noise = FALSE, d = 1)
+  noise = FALSE, d = 1L)
 }
 \arguments{
 \item{composite}{A logical, \code{TRUE} for a composite of a global process
@@ -52,6 +52,8 @@ create_parameter_list(composite = TRUE, stationary = FALSE, noise = FALSE,
 \code{\link{simulate_from_model}} \code{\link{bcgpsims}}
 
 Other preprocessing functions: \code{\link{bcgppriors}},
-  \code{\link{createInits}}, \code{\link{create_priors}}
+  \code{\link{createInits}},
+  \code{\link{create_inits,bcgppriors-method}},
+  \code{\link{create_priors}}
 }
 \concept{preprocessing functions}
