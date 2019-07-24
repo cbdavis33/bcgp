@@ -152,7 +152,7 @@ createPriorsNonCompS <- function(d){
 
 #' Create a list with initial values.
 #'
-#' \code{createInits} returns a list that contains randomly generated initial
+#' \code{create_inits} returns a list that contains randomly generated initial
 #' values.
 #'
 #' This creates a list of length \code{chains} that contains randomly generated
@@ -171,13 +171,36 @@ createPriorsNonCompS <- function(d){
 #' @section TODO: Decide whether to add options for "heteroscedastic" and "composite"
 #' @examples
 #' x <- matrix(runif(40), ncol= 4, nrow = 10)
-#' createInits(x)
-#' createInits(x, priors = create_priors(), chains = 2)
+#' create_inits(x)
+#' create_inits(x, priors = create_priors(), chains = 2)
 #' @export
-createInits  <- function(x, priors = create_priors(x), chains = 4){
+create_inits_raw  <- function(x, composite = TRUE, stationary = FALSE,
+                              noise = FALSE,
+                              priors = create_priors(composite, stationary,
+                                                     noise, d = ncol(x)),
+                              chains = 4){
   initList <- vector("list", length = chains)
-  initList <- lapply(initList, initFunc, priors = priors, x = x)
-  return(initList)
+
+  if(isTRUE(composite)){
+    if(isFALSE(stationary)){
+      ## composite, non- stationary
+      initFunc <- "createInitsCompNS"
+    }else{
+      ## composite, stationary
+      initFunc <- "createInitsCompS"
+    }
+  }else{
+    if(isFALSE(stationary)){
+      ## non-composite, non- stationary
+      initFunc <- "createInitsNonCompNS"
+    }else{
+      ## non-composite, stationary
+      initFunc <- "createInitsNonCompS"
+    }
+  }
+
+  initList <- lapply(initList, initFunc, priors = priors@priors, x = x)
+  new("bcgpinits", priors, inits = initList)
 }
 
 createInitsCompNS <- function(initList, priors, x){
@@ -203,7 +226,7 @@ createInitsCompNS <- function(initList, priors, x){
 
 }
 
-createInitsCompS <- function(initList, priors){
+createInitsCompS <- function(initList, priors, x){
 
   d <- length(priors$rhoG$alpha)
 
@@ -242,7 +265,7 @@ createInitsNonCompNS <- function(initList, priors, x){
 
 }
 
-createInitsNonCompS <- function(initList, priors){
+createInitsNonCompS <- function(initList, priors, x){
 
   d <- length(priors$rho$alpha)
 

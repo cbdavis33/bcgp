@@ -51,9 +51,10 @@ create_parameter_list(composite = TRUE, stationary = FALSE, noise = FALSE,
 \seealso{
 \code{\link{simulate_from_model}} \code{\link{bcgpsims}}
 
-Other preprocessing functions: \code{\link{bcgppriors}},
-  \code{\link{createInits}},
+Other preprocessing functions: \code{\link{bcgpinits}},
+  \code{\link{bcgppriors}},
   \code{\link{create_inits,bcgppriors-method}},
+  \code{\link{create_inits_raw}},
   \code{\link{create_priors}}
 }
 \concept{preprocessing functions}

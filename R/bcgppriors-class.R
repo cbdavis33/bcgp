@@ -60,6 +60,7 @@ setGeneric(name = "create_inits",
 #'   \item{\code{x}}{An \code{n x d} matrix of training data locations. This
 #'   matrix is required for a nonstationary model in order to simulate the
 #'   variance process at the training data locations.}
+#'   }
 #' @return An instance of S4 class \code{bcgpinits} containing randomly
 #' generated initial values for all the parameters, information about the prior
 #' distributions, and information about the process.
@@ -72,7 +73,7 @@ setGeneric(name = "create_inits",
 #' create_inits(object = create_priors(stationary = TRUE), chains = 4)
 #' @export
 setMethod("create_inits", signature = "bcgppriors",
-          function(object, chains = 4L, ...){
+          function(object, chains = 4L, x){
 
             composite <- object@composite
             stationary <- object@stationary
