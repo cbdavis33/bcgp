@@ -52,11 +52,23 @@ setClass(Class = "bcgpsims",
                           composite = logical(),
                           seed = NA_integer_))
 
-#' An S4 class to represent priors for a BCGP model
+#' An S4 class to represent a BCGP model
 #'
-#' This class contains information about the distributions for the parameters
-#' and the values of the hyperparameters.
+#' This class contains the data, information about the distributions for the
+#' parameters, the values of the hyperparameters, initial values for the
+#' parameters, the number of chains desired, whether the data should be scaled
+#' to \eqn{[0, 1]^d} before fitting, along with some other information
+#' about the type of model desired to be fit (composite/non-composite,
+#' stationary/non-stationary, deterministic/noisy).
 #'
+#' @slot data A list that contains the training data. One element of the list
+#' contains the raw data, and one element contains the scaled data in which the
+#' independent variables are scaled to \eqn{[0, 1]^d}, and the response variable
+#' is scaled to have mean 0 and variance 1.
+#' @slot stationary A logical indicating whether the model is stationary or not.
+#' @slot composite A logical indicating whether the model is composite or not.
+#' @slot noise A logical indicating whether the data is noisy or deterministic
+#' (as from a computer model).
 #' @slot priors A list with an element for each parameter in the BCGP model
 #' specified by \code{composite} and \code{stationary}. Each element contains
 #' the values of the hyperparameters for each parameter.
@@ -64,47 +76,46 @@ setClass(Class = "bcgpsims",
 #' model specified by \code{composite} and \code{stationary}. Each element
 #' contains a character string identifying the prior distribution for each
 #' parameter.
-#' @slot stationary A logical indicating whether the model is stationary or not.
-#' @slot composite A logical indicating whether the model is composite or not.
-#' @slot noise A logical indicating whether the data is noisy or deterministic
-#' (as from a computer model).
-#' @seealso \code{\link{create_priors}} \code{\link{bcgppriors}}
+#' @slot inits A list of length \code{chains} that contains initial values for
+#' each parameter for the MCMC algorithm.
+#' @slot scaled A logical indicating whether the data should be scaled before
+#' fitting. It is highly recommended to scale the data before fitting.
+#' @slot chains A positive integer specifying the number of Markov chains
+#'
+#' @seealso \code{\link{bcgpmodel}}
 #' @examples
-#' create_priors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
-#' bcgppriors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
+#' simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE)
+#' bcgpmodel(x = simData@training$x, y = simData@training$y
+#'           composite = TRUE, stationary = FALSE, noise = TRUE,
+#'           scaled = TRUE, chains = 4L)
 #' @export
-setClass(Class = "bcgppriors",
-         slots = c(priors = "list",
-                   distributions = "list",
+setClass(Class = "bcgpmodel",
+         slots = c(data = "list",
                    stationary = "logical",
                    composite = "logical",
-                   noise = "logical"),
-         prototype = list(priors = list(),
-                          distributions = list(),
+                   noise = "logical",
+                   priors = "list",
+                   distributions = "list",
+                   inits = "list",
+                   scaled = "logical",
+                   chains = "integer"),
+         prototype = list(data = list(),
                           stationary = logical(),
                           composite = logical(),
-                          noise = logical()))
+                          noise = logical(),
+                          priors = list(),
+                          distributions = list(),
+                          inits = list(),
+                          scaled = logical(),
+                          chains = integer()))
 
-setClass(Class = "bcgpinits",
-         slots = c(inits = "list"),
-         contains = "bcgppriors")
-
-setClass(Class = "bcgpmodel",
-         slots = c(data = "list",       # raw and scaled, then x and y
-                   priors = "list",
-                   inits = "list",
-                   stationary = "logical",
-                   composite = "logical",
-                   algorithm = "character",
-                   scaled = "logical"))
 
 setClass(Class = "bcgpfit",
          slots = c(model_pars = "character",
                    par_dims = "list",
                    sim = "list",
                    sampler_args = "list",
-                   date = "character",
-                   .MISC = "environment"),
+                   date = "character"),
          contains = "bcgpmodel")
 
 setClass(Class = "bcgpfitpred",

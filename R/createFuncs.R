@@ -22,13 +22,12 @@
 #' @return An instance of S4 class \code{bcgppriors} containing the default
 #' values for all the prior parameters, information about the process, and
 #' information about the distributions.
-#' @family preprocessing functions
 #' @seealso \linkS4class{bcgppriors} \code{\link{bcgppriors}}
 #' \code{\link{bcgp}}
 #' @examples
 #' create_priors(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1)
 #' create_priors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
-#' @export
+
 create_priors <- function(composite = TRUE, stationary = FALSE,
                           noise = FALSE, d = 1L){
 
@@ -60,14 +59,7 @@ create_priors <- function(composite = TRUE, stationary = FALSE,
                                      beta = 1e-1)
   }
 
-  toReturn <- new("bcgppriors",
-                  priors = priorInfo$priors,
-                  distributions = priorInfo$distributions,
-                  stationary = stationary,
-                  composite = composite,
-                  noise = noise)
-
-  return(toReturn)
+  return(priorInfo)
 }
 
 createPriorsCompNS <- function(d){
@@ -152,8 +144,8 @@ createPriorsNonCompS <- function(d){
 
 #' Create a list with initial values.
 #'
-#' \code{create_inits} returns a list that contains randomly generated initial
-#' values.
+#' \code{create_inits} returns a list that contains initial values randomly
+#' generated from the prior distribution.
 #'
 #' This creates a list of length \code{chains} that contains randomly generated
 #' initial values. The intention is to specify initial values for the parameters
@@ -166,19 +158,15 @@ createPriorsNonCompS <- function(d){
 #' @param chains The number of Markov chains. The default is 4.
 #' @return A list of length \code{chains} The elements of this list will be named
 #' lists, where each of these has the name of a parameter.
-#' @family preprocessing functions
 #' @seealso \code{\link{bcgp}}
 #' @section TODO: Decide whether to add options for "heteroscedastic" and "composite"
 #' @examples
 #' x <- matrix(runif(40), ncol= 4, nrow = 10)
 #' create_inits(x)
 #' create_inits(x, priors = create_priors(), chains = 2)
-#' @export
-create_inits_raw  <- function(x, composite = TRUE, stationary = FALSE,
-                              noise = FALSE,
-                              priors = create_priors(composite, stationary,
-                                                     noise, d = ncol(x)),
-                              chains = 4){
+
+create_inits <- function(x, composite, stationary, noise,
+                         priors, chains){
   initList <- vector("list", length = chains)
 
   if(isTRUE(composite)){
@@ -199,8 +187,8 @@ create_inits_raw  <- function(x, composite = TRUE, stationary = FALSE,
     }
   }
 
-  initList <- lapply(initList, initFunc, priors = priors@priors, x = x)
-  new("bcgpinits", priors, inits = initList)
+  lapply(initList, initFunc, priors = priors, x = x)
+
 }
 
 createInitsCompNS <- function(initList, priors, x){
