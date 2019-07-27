@@ -45,7 +45,7 @@
 bcgpmodel <- function(x, y, stationary = FALSE, composite = TRUE, noise = FALSE,
                       scaled = TRUE, chains = 4L){
 
-
+  if(is.vector(x)) x <- as.matrix(x)
   validate_bcgpmodel_inputs(x, y, stationary, composite, noise,
                             scaled, chains)
 
