@@ -149,6 +149,10 @@ setMethod("bcgp_sampling", "bcgpmodel",
                      !identical(Sys.getenv("RSTUDIO"), "1"),
                    show_messages = TRUE, ...) {
 
+            algorithm <- match.arg(algorithm)
+
+
+
             new("bcgpfit", object,
                 model_pars = model_pars,
                 par_dims = par_dims,
