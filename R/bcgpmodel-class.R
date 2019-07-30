@@ -136,6 +136,7 @@ setGeneric(name = "bcgp_sampling",
            def = function(object, ...) { standardGeneric("bcgp_sampling")})
 
 
+#' @export
 setMethod("bcgp_sampling", "bcgpmodel",
           function(object, chains = 4, iter = 2000,
                    algorithm = c("NUTS", "MH"),
@@ -151,14 +152,16 @@ setMethod("bcgp_sampling", "bcgpmodel",
 
             algorithm <- match.arg(algorithm)
 
+            if(algorithm == "NUTS") out <- bcgp_stan(object, ...)
+            else out <- bcgp_MH(object, ...)
 
-
-            new("bcgpfit", object,
-                model_pars = model_pars,
-                par_dims = par_dims,
-                sim = sim,
-                sampler_args = sampler_args,
-                date = date())
+            return(out)
+            # new("bcgpfit", object,
+            #     model_pars = model_pars,
+            #     par_dims = par_dims,
+            #     sim = sim,
+            #     sampler_args = sampler_args,
+            #     date = date())
 
 
             })

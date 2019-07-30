@@ -92,3 +92,142 @@ bcgp_model <- function(x, y, composite = TRUE, stationary = FALSE,
               scaled = scaled)
 
 }
+
+bcgp_stan <- function(x, ...){
+
+  if(isTRUE(x@composite)){
+    if(isFALSE(x@stationary)){
+      ## composite, non- stationary
+      out <- bcgp_stan_CompNS(x, ...)
+    }else{
+      ## composite, stationary
+      out <- bcgp_stan_CompS(x, ...)
+    }
+  }else{
+    if(isFALSE(x@stationary)){
+      ## non-composite, non- stationary
+      out <- bcgp_stan_NonCompNS(x, ...)
+    }else{
+      ## non-composite, stationary
+      out <- bcgp_stan_NonCompS(x, ...)
+    }
+  }
+  return(out)
+}
+
+bcgp_stan_NonCompS <- function(x, ...){
+
+  if(isTRUE(x@scaled)){
+    xIn <- x@data$scaled$x
+    yIn <- x@data$scaled$y
+  }else{
+    xIn <- x@data$raw$x
+    yIn <- x@data$raw$y
+  }
+  d <- ncol(xIn)
+
+  stanData <- list(x = xIn, y = as.vector(yIn), n = length(yIn), d = d,
+                   rhoAlpha = array(x@priors$rho$alpha, dim = d),
+                   rhoBeta = array(x@priors$rho$beta, dim = d),
+                   sig2Alpha = x@priors$sigma2$alpha,
+                   sig2Beta = x@priors$sigma2$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+  out <- rstan::sampling(stanmodels$stanNonCompS, data = stanData, ...)
+  return(out)
+}
+
+bcgp_stan_CompS <- function(x, ...){
+
+  if(isTRUE(x@scaled)){
+    xIn <- x@data$scaled$x
+    yIn <- x@data$scaled$y
+  }else{
+    xIn <- x@data$raw$x
+    yIn <- x@data$raw$y
+  }
+  d <- ncol(xIn)
+
+  stanData <- list(x = xIn, y = as.vector(yIn), n = length(yIn), d = d,
+                   wLower = x@priors$w$lower, wUpper = x@priors$w$upper,
+                   wAlpha = x@priors$w$alpha, wBeta = x@priors$w$beta,
+                   rhoGAlpha = array(x@priors$rhoG$alpha, dim = d),
+                   rhoGBeta = array(x@priors$rhoG$beta, dim = d),
+                   rhoLAlpha = array(x@priors$rhoL$alpha, dim = d),
+                   rhoLBeta = array(x@priors$rhoL$beta, dim = d),
+                   sig2Alpha = x@priors$sigma2$alpha,
+                   sig2Beta = x@priors$sigma2$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+  out <- rstan::sampling(stanmodels$stanCompS, data = stanData, ...)
+  return(out)
+}
+
+bcgp_stan_CompNS <- function(x, ...){
+
+  if(isTRUE(x@scaled)){
+    xIn <- x@data$scaled$x
+    yIn <- x@data$scaled$y
+  }else{
+    xIn <- x@data$raw$x
+    yIn <- x@data$raw$y
+  }
+  d <- ncol(xIn)
+
+  stanData <- list(x = x@data$scaled$x,
+                   y = as.vector(x@data$scaled$y),
+                   n = length(yIn),
+                   d = d,
+                   wLower = x@priors$w$lower,
+                   wUpper = x@priors$w$upper,
+                   wAlpha = x@priors$w$alpha,
+                   wBeta = x@priors$w$beta,
+                   rhoGAlpha = array(x@priors$rhoG$alpha, dim = d),
+                   rhoGBeta = array(x@priors$rhoG$beta, dim = d),
+                   rhoLAlpha = array(x@priors$rhoL$alpha, dim = d),
+                   rhoLBeta = array(x@priors$rhoL$beta, dim = d),
+                   muVBetaV = x@priors$muV$betaV,
+                   muVSig2 = x@priors$muV$sig2,
+                   rhoVAlpha = array(x@priors$rhoV$alpha, dim = d),
+                   rhoVBeta = array(x@priors$rhoV$beta, dim = d),
+                   sig2VAlpha = x@priors$sig2V$alpha,
+                   sig2VBeta = x@priors$sig2V$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+  out <- rstan::sampling(stanmodels$stanCompNS, data = stanData, ...)
+  return(out)
+}
+
+
+bcgp_stan_NonCompNS <- function(x, ...){
+
+  if(isTRUE(x@scaled)){
+    xIn <- x@data$scaled$x
+    yIn <- x@data$scaled$y
+  }else{
+    xIn <- x@data$raw$x
+    yIn <- x@data$raw$y
+  }
+  d <- ncol(xIn)
+
+  stanData <- list(x = x@data$scaled$x,
+                   y = as.vector(x@data$scaled$y),
+                   n = length(yIn),
+                   d = d,
+                   rhoAlpha = array(x@priors$rho$alpha, dim = d),
+                   rhoBeta = array(x@priors$rho$beta, dim = d),
+                   muVBetaV = x@priors$muV$betaV,
+                   muVSig2 = x@priors$muV$sig2,
+                   rhoVAlpha = array(x@priors$rhoV$alpha, dim = d),
+                   rhoVBeta = array(x@priors$rhoV$beta, dim = d),
+                   sig2VAlpha = x@priors$sig2V$alpha,
+                   sig2VBeta = x@priors$sig2V$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+  out <- rstan::sampling(stanmodels$stanNonCompNS, data = stanData, ...)
+  return(out)
+}
