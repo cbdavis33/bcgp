@@ -138,17 +138,7 @@ setGeneric(name = "bcgp_sampling",
 
 #' @export
 setMethod("bcgp_sampling", "bcgpmodel",
-          function(object, chains = 4, iter = 2000,
-                   algorithm = c("NUTS", "MH"),
-                   warmup = floor(iter / 2),
-                   thin = 1, seed = sample.int(.Machine$integer.max, 1),
-                   init = "random", check_data = TRUE,
-                   sample_file = NULL, diagnostic_file = NULL, verbose = FALSE,
-                   control = NULL, include = TRUE,
-                   cores = getOption("mc.cores", 1L),
-                   open_progress = interactive() && !isatty(stdout()) &&
-                     !identical(Sys.getenv("RSTUDIO"), "1"),
-                   show_messages = TRUE, ...) {
+          function(object, algorithm = c("NUTS", "MH"), ...) {
 
             algorithm <- match.arg(algorithm)
 
@@ -156,7 +146,7 @@ setMethod("bcgp_sampling", "bcgpmodel",
             else out <- bcgp_MH(object, ...)
 
             return(out)
-            # new("bcgpfit", object,
+            # new("bcgpfit", ,
             #     model_pars = model_pars,
             #     par_dims = par_dims,
             #     sim = sim,

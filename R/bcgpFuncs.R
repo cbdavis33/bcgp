@@ -95,6 +95,14 @@ bcgp_model <- function(x, y, composite = TRUE, stationary = FALSE,
 
 bcgp_stan <- function(x, ...){
 
+  dots <- list(...)
+  if("thin" %in% names(dots) && dots$thin != 1){
+    message(strwrap(prefix = " ", initial = "",
+                    "There's no reason to thin these models. If you want to
+                    thin, do it manually. Setting 'thin' to 1."))
+    dots$thin <- 1
+  }
+
   if(isTRUE(x@composite)){
     if(isFALSE(x@stationary)){
       ## composite, non- stationary
@@ -134,7 +142,8 @@ bcgp_stan_NonCompS <- function(x, ...){
                    sig2EpsAlpha = x@priors$sig2eps$alpha,
                    sig2EpsBeta = x@priors$sig2eps$beta)
 
-  out <- rstan::sampling(stanmodels$stanNonCompS, data = stanData, ...)
+  out <- rstan::sampling(stanmodels$stanNonCompS, data = stanData,
+                         pars = c("beta0", "rho", "sig2Eps", "sigma"), ...)
   return(out)
 }
 
@@ -161,7 +170,9 @@ bcgp_stan_CompS <- function(x, ...){
                    sig2EpsAlpha = x@priors$sig2eps$alpha,
                    sig2EpsBeta = x@priors$sig2eps$beta)
 
-  out <- rstan::sampling(stanmodels$stanCompS, data = stanData, ...)
+  out <- rstan::sampling(stanmodels$stanCompS, data = stanData,
+                         pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
+                                  "sigma"), ...)
   return(out)
 }
 
@@ -197,7 +208,9 @@ bcgp_stan_CompNS <- function(x, ...){
                    sig2EpsAlpha = x@priors$sig2eps$alpha,
                    sig2EpsBeta = x@priors$sig2eps$beta)
 
-  out <- rstan::sampling(stanmodels$stanCompNS, data = stanData, ...)
+  out <- rstan::sampling(stanmodels$stanCompNS, data = stanData,
+                         pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
+                                  "muV", "sig2V", "rhoV", "V"), ...)
   return(out)
 }
 
@@ -228,6 +241,8 @@ bcgp_stan_NonCompNS <- function(x, ...){
                    sig2EpsAlpha = x@priors$sig2eps$alpha,
                    sig2EpsBeta = x@priors$sig2eps$beta)
 
-  out <- rstan::sampling(stanmodels$stanNonCompNS, data = stanData, ...)
+  out <- rstan::sampling(stanmodels$stanNonCompNS, data = stanData,
+                         pars = c("beta0", "rho", "sig2Eps",
+                                  "muV", "sig2V", "rhoV", "V"), ...)
   return(out)
 }
