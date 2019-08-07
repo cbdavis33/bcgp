@@ -142,16 +142,17 @@ setMethod("bcgp_sampling", "bcgpmodel",
 
             algorithm <- match.arg(algorithm)
 
-            if(algorithm == "NUTS") out <- bcgp_stan(object, ...)
-            else out <- bcgp_MH(object, ...)
+            if(algorithm == "NUTS") out1 <- bcgp_stan(object, ...)
+            else out1 <- bcgp_MH(object, ...)
 
-            return(out)
-            # new("bcgpfit", ,
-            #     model_pars = model_pars,
-            #     par_dims = par_dims,
-            #     sim = sim,
-            #     sampler_args = sampler_args,
-            #     date = date())
-
+            # return(out)
+            new("bcgpfit",
+                model_name = out1$model_name,
+                model_pars = out1$model_pars,
+                par_dims = out1$par_dims,
+                sim = out1$sim,
+                sampler_args = out1$sampler_args,
+                date = date(),
+                object)
 
             })

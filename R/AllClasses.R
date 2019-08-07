@@ -110,8 +110,10 @@ setClass(Class = "bcgpmodel",
                           chains = integer()))
 
 
+#' @export
 setClass(Class = "bcgpfit",
-         slots = c(model_pars = "character",
+         slots = c(model_name = "character",
+                   model_pars = "character",
                    par_dims = "list",
                    sim = "list",
                    sampler_args = "list",
