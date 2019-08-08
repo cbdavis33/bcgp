@@ -6,11 +6,9 @@
 \title{An S4 class to represent a BCGP model}
 \description{
 This class contains the data, information about the distributions for the
-parameters, the values of the hyperparameters, initial values for the
-parameters, the number of chains desired, whether the data should be scaled
-to \eqn{[0, 1]^d} before fitting, along with some other information
-about the type of model desired to be fit (composite/non-composite,
-stationary/non-stationary, deterministic/noisy).
+parameters, the values of the hyperparameters, along with some other
+information about the type of model desired to be fit
+(composite/non-composite, stationary/non-stationary, deterministic/noisy).
 }
 \section{Slots}{
 
@@ -20,9 +18,9 @@ contains the raw data, and one element contains the scaled data in which the
 independent variables are scaled to \eqn{[0, 1]^d}, and the response variable
 is scaled to have mean 0 and variance 1.}
 
-\item{\code{stationary}}{A logical indicating whether the model is stationary or not.}
-
 \item{\code{composite}}{A logical indicating whether the model is composite or not.}
+
+\item{\code{stationary}}{A logical indicating whether the model is stationary or not.}
 
 \item{\code{noise}}{A logical indicating whether the data is noisy or deterministic
 (as from a computer model).}
@@ -35,21 +33,12 @@ the values of the hyperparameters for each parameter.}
 model specified by \code{composite} and \code{stationary}. Each element
 contains a character string identifying the prior distribution for each
 parameter.}
-
-\item{\code{inits}}{A list of length \code{chains} that contains initial values for
-each parameter for the MCMC algorithm.}
-
-\item{\code{scaled}}{A logical indicating whether the data should be scaled before
-fitting. It is highly recommended to scale the data before fitting.}
-
-\item{\code{chains}}{A positive integer specifying the number of Markov chains}
 }}
 
 \examples{
 simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE)
 bcgpmodel(x = simData@training$x, y = simData@training$y
-          composite = TRUE, stationary = FALSE, noise = TRUE,
-          scaled = TRUE, chains = 4L)
+          composite = TRUE, stationary = FALSE, noise = TRUE)
 }
 \seealso{
 \code{\link{bcgpmodel}}

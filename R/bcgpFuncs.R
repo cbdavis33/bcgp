@@ -93,45 +93,58 @@ bcgp_model <- function(x, y, composite = TRUE, stationary = FALSE,
 
 }
 
-bcgp_stan <- function(x, ...){
+bcgp_stan <- function(x, scaled, chains, cores, iter, warmup, thin, control,
+                      ...){
 
-  dots <- list(...)
-  if("thin" %in% names(dots) && dots$thin != 1){
-    message(strwrap(prefix = " ", initial = "",
-                    "There's no reason to thin these models. If you want to
-                    thin, do it manually. Setting 'thin' to 1."))
-    dots$thin <- 1
-  }
+  # dots <- list(...)
+  # if("thin" %in% names(dots) && dots$thin != 1){
+  #   message(strwrap(prefix = " ", initial = "",
+  #                   "There's no reason to thin these models."))
+  #
+  # }
 
   if(isTRUE(x@composite)){
     if(isFALSE(x@stationary)){
       ## composite, non- stationary
-      out <- bcgp_stan_CompNS(x, ...)
+      out <- bcgp_stan_CompNS(x, scaled, chains, cores, iter, warmup, thin,
+                              control, ...)
     }else{
       ## composite, stationary
-      out <- bcgp_stan_CompS(x, ...)
+      out <- bcgp_stan_CompS(x, scaled, chains, cores, iter, warmup, thin,
+                             control, ...)
     }
   }else{
     if(isFALSE(x@stationary)){
       ## non-composite, non- stationary
-      out <- bcgp_stan_NonCompNS(x, ...)
+      out <- bcgp_stan_NonCompNS(x, scaled, chains, cores, iter, warmup, thin,
+                                 control, ...)
     }else{
       ## non-composite, stationary
-      out <- bcgp_stan_NonCompS(x, ...)
+      out <- bcgp_stan_NonCompS(x, scaled, chains, cores, iter, warmup, thin,
+                                control, ...)
     }
   }
   return(out)
 }
 
-bcgp_stan_NonCompS <- function(x, ...){
+bcgp_stan_NonCompS <- function(x, scaled, chains, cores, iter, warmup, thin,
+                               control, ...){
 
-  if(isTRUE(x@scaled)){
-    xIn <- x@data$scaled$x
-    yIn <- x@data$scaled$y
+
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
   }else{
-    xIn <- x@data$raw$x
-    yIn <- x@data$raw$y
+    xIn <- x@data$x
+    yIn <- x@data$y
   }
+
   d <- ncol(xIn)
   n <- length(yIn)
 
@@ -146,30 +159,51 @@ bcgp_stan_NonCompS <- function(x, ...){
                    sig2EpsAlpha = x@priors$sig2eps$alpha,
                    sig2EpsBeta = x@priors$sig2eps$beta)
 
-  stanFit <- rstan::sampling(stanmodels$stanNonCompS, data = stanData,
-                             pars = c("beta0", "rho", "sig2Eps", "sig2"), ...)
 
-  out <- list(model_name = "noncomposite_stationary",
+  # dots <- list(...)
+  # args <- prepare_sampling_args(x, dots)
+
+
+
+  stanFit <- rstan::sampling(stanmodels$stanNonCompS, data = stanData,
+                             pars = c("beta0", "rho", "sig2Eps", "sig2"),
+                             chains = chains, cores = cores, iter = iter,
+                             warmup = warmup, thin = thin, control = control,
+                             ...)
+  # stanFit <- do.call(rstan::sampling, list(object = stanmodels$stanNonCompS, data = stanData,
+  #                    pars = c("beta0", "rho", "sig2Eps", "sig2"), thin = dots$thin,
+  #                    chains))
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "noncomposite_stationary",
               model_pars = c("beta0", "rho", "sig2Eps", "sig2"),
               par_dims = list(beta0 = numeric(0),
                               rho = d,
                               sig2Eps = numeric(0),
                               sig2 = numeric(0)),
               sims = stanFit@sim$samples,
-              sampler_args = stanFit@stan_args)
-
+              sampler_args = sampler_args)
+  browser()
   return(out)
 }
 
 bcgp_stan_CompS <- function(x, ...){
 
-  if(isTRUE(x@scaled)){
-    xIn <- x@data$scaled$x
-    yIn <- x@data$scaled$y
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
   }else{
-    xIn <- x@data$raw$x
-    yIn <- x@data$raw$y
+    xIn <- x@data$x
+    yIn <- x@data$y
   }
+
   d <- ncol(xIn)
   n <- length(yIn)
 
@@ -192,7 +226,10 @@ bcgp_stan_CompS <- function(x, ...){
                              pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
                                       "sig2"), ...)
 
-  out <- list(model_name = "composite_stationary",
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "composite_stationary",
               model_pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
                              "sig2"),
               par_dims = list(beta0 = numeric(0),
@@ -202,20 +239,27 @@ bcgp_stan_CompS <- function(x, ...){
                               sig2Eps = numeric(0),
                               sig2 = numeric(0)),
               sims = stanFit@sim$samples,
-              sampler_args = stanFit@stan_args)
+              sampler_args = sampler_args)
 
   return(out)
 }
 
 bcgp_stan_CompNS <- function(x, ...){
 
-  if(isTRUE(x@scaled)){
-    xIn <- x@data$scaled$x
-    yIn <- x@data$scaled$y
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
   }else{
-    xIn <- x@data$raw$x
-    yIn <- x@data$raw$y
+    xIn <- x@data$x
+    yIn <- x@data$y
   }
+
   d <- ncol(xIn)
   n <- length(yIn)
 
@@ -244,7 +288,10 @@ bcgp_stan_CompNS <- function(x, ...){
                              pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
                                       "muV", "sig2V", "rhoV", "V"), ...)
 
-  out <- list(model_name = "composite_nonstationary",
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "composite_nonstationary",
               model_pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
                              "muV", "sig2V", "rhoV", "V"),
               par_dims = list(beta0 = numeric(0),
@@ -257,7 +304,7 @@ bcgp_stan_CompNS <- function(x, ...){
                               rhoV = d,
                               V = n),
               sims = stanFit@sim$samples,
-              sampler_args = stanFit@stan_args)
+              sampler_args = sampler_args)
 
   return(out)
 }
@@ -265,13 +312,20 @@ bcgp_stan_CompNS <- function(x, ...){
 
 bcgp_stan_NonCompNS <- function(x, ...){
 
-  if(isTRUE(x@scaled)){
-    xIn <- x@data$scaled$x
-    yIn <- x@data$scaled$y
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
   }else{
-    xIn <- x@data$raw$x
-    yIn <- x@data$raw$y
+    xIn <- x@data$x
+    yIn <- x@data$y
   }
+
   d <- ncol(xIn)
   n <- length(yIn)
 
@@ -295,7 +349,10 @@ bcgp_stan_NonCompNS <- function(x, ...){
                              pars = c("beta0", "rho", "sig2Eps",
                                       "muV", "sig2V", "rhoV", "V"), ...)
 
-  out <- list(model_name = "noncomposite_nonstationary",
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "noncomposite_nonstationary",
               model_pars = c("beta0", "rho", "sig2Eps",
                              "muV", "sig2V", "rhoV", "V"),
               par_dims = list(beta0 = numeric(0),
@@ -306,7 +363,7 @@ bcgp_stan_NonCompNS <- function(x, ...){
                               rhoV = d,
                               V = n),
               sims = stanFit@sim$samples,
-              sampler_args = stanFit@stan_args)
+              sampler_args = sampler_args)
 
   return(out)
 

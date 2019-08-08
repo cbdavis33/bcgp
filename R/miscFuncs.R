@@ -147,15 +147,13 @@ checkSeed <- function(seed){
   return(seed)
 }
 
-validate_bcgpmodel_inputs <- function(x, y, stationary, composite, noise,
-                                      scaled, chains){
+validate_bcgpmodel_inputs <- function(x, y, composite, stationary, noise){
 
   validate_data(x, y)
-  chains <- validate_chains(chains)
-  validate_logical(stationary)
   validate_logical(composite)
+  validate_logical(stationary)
   validate_logical(noise)
-  validate_logical(scaled)
+
 }
 
 validate_data <- function(x, y){
@@ -209,5 +207,50 @@ validate_logical <- function(x){
     stop(strwrap(prefix = " ", initial = "",
                  paste0("'", deparse(substitute(x)), "'", " must be either
                         'TRUE' or 'FALSE'.")))
+
+}
+
+get_sampler_args_stan <- function(x){
+
+  list(algorithm = "NUTS",
+       iter = x@stan_args[[1]]$iter,
+       warmup = x@stan_args[[1]]$warmup,
+       thin = x@stan_args[[1]]$thin,
+       seed = sapply(x@stan_args, function(z) z$seed))
+
+}
+
+get_sim_stan <- function(x, sampler_args){
+
+  warmup2 <- 1 + (sampler_args$warmup - 1) %/% sampler_args$thin
+  n_kept <- 1 + (sampler_args$iter - sampler_args$warmup - 1) %/%
+    sampler_args$thin
+  n_save <- n_kept + warmup2
+
+  list(n_kept = nrow(x@sim$s))
+
+}
+
+prepare_sampling_args <- function(object, dots){
+
+  if("thin" %in% names(dots) && dots$thin != 1){
+    message(strwrap(prefix = " ", initial = "",
+                    "There's no reason to thin these models."))
+    out$thin <- 1
+  }
+
+  if("chains" %in% names(dots) && dots$chains != object$chains){
+    message(strwrap(prefix = " ", initial = "",
+                    "Setting 'chains' to the value in the bcgpmdel object."))
+    out$chains <- object@chains
+  }
+
+  if("warmup" %in% names(dots)){
+    out$warmup <- dots$warmup
+  }
+
+
+
+
 
 }

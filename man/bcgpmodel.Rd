@@ -4,8 +4,7 @@
 \alias{bcgpmodel}
 \title{Create an object of class bcgpmodel}
 \usage{
-bcgpmodel(x, y, stationary = FALSE, composite = TRUE, noise = FALSE,
-  scaled = TRUE, chains = 4L)
+bcgpmodel(x, y, composite = TRUE, stationary = FALSE, noise = FALSE)
 }
 \arguments{
 \item{x}{An \emph{n x d} numeric matrix, where \emph{d} is the dimension of
@@ -13,26 +12,21 @@ the data, and \emph{n} is the number of training data observations.}
 
 \item{y}{A numeric vector of length \emph{n}.}
 
+\item{composite}{A logical, \code{TRUE} for a composite of a global process,
+a local process, and an error process, \code{FALSE} for non-composite.
+Defaults to \code{TRUE}.}
+
 \item{stationary}{A logical, \code{FALSE} for a non-stationary process,
 \code{TRUE} for a stationary process. If \code{FALSE}, the variance for the
 process is \eqn{\sigma^2(x)}, and if \code{TRUE}, the variance is
 \eqn{\sigma^2}. Defaults to \code{FALSE}.}
 
-\item{composite}{A logical, \code{TRUE} for a composite of a global process,
-a local process, and an error process, \code{FALSE} for non-composite.
-Defaults to \code{TRUE}.}
-
 \item{noise}{If the data should be noise-free (such as from a deterministic
 computer model), then \code{noise} should be \code{FALSE}. Otherwise, it
 should be \code{TRUE}. Defaults to \code{FALSE}}
-
-\item{scaled}{A logical indicating whether the user would like the data to be
-scaled before fitting.}
-
-\item{chains}{A positive integer specifying the number of Markov chains}
 }
 \value{
-An instance of S4 class \code{bcgpmodel} containing the default
+An instance of S4 class \code{bcgpmodel} containing the data, default
 values for all the prior parameters, information about the process, and
 information about the distributions.
 }
@@ -52,8 +46,7 @@ provided information on the number of chains desired to be sampled.
 \examples{
 simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE)
 bcgpmodel(x = simData@training$x, y = simData@training$y,
-          composite = TRUE, stationary = FALSE, noise = FALSE,
-          scaled = TRUE, chains = 4L)
+          composite = TRUE, stationary = FALSE, noise = FALSE)
 }
 \seealso{
 \linkS4class{bcgpmodel} \code{\link{bcgpfit}}
