@@ -46,12 +46,13 @@ print.bcgpfit <- function(x, pars = x@model_pars,
 #' @examples
 #'
 #'
-#' simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE, d = 2,
-#'                     decomposition = TRUE)
+#' simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE,
+#'                     d = 2, decomposition = TRUE)
 #'
 #' model <- bcgpmodel(x = simData@training$x, y = simData@training$y,
 #'                    composite = TRUE, stationary = FALSE, noise = FALSE)
-#' fit <- bcgp_sampling(model, scaled = TRUE, cores = 4, nmcmc = 500, burnin = 200)
+#' fit <- bcgp_sampling(model, scaled = TRUE, cores = 4, nmcmc = 500,
+#'                      burnin = 200)
 #'
 #' fit
 #' print(fit, pars = c("beta0", "w", "rhoG", "rhoL"), digits_summary = 3)
@@ -83,4 +84,84 @@ setMethod("summary", signature = "bcgpfit",
           }
 )
 
-# show, summary, print, plot, predict
+setGeneric(name = "posterior_predict",
+           def = function(object, ...) { standardGeneric("posterior_predict")})
+
+#' \code{posterior_predict} method for a \code{bcgpfit} object
+#'
+#' This makes posterior predictions for either new data or for the training
+#' data.
+#'
+#' @param object a bcgpfit object
+#' @param newdata Optionally, an \emph{nPred x d} numeric matrix of new data
+#' locations at which to predict. If omitted, the training data matrix is used.
+#' If \code{newdata} is provided, it should be provided on the same scale as the
+#' user-provided training data, i.e. do not transform to \eqn{[0, 1]^d}.
+#'
+#' @return A list with elements \code{x}, an \code{nPred x d} numeric matrix
+#' representing the prediction locations and \code{y}, an \code{iter x nPred}
+#' matrix of simulations from the posterior predictive distribution. Each row of
+#' the matrix is a vector of predictions generated using a single draw of the
+#' model parameters from the posterior distribution.
+#' @examples
+#'
+#' simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE,
+#'                     d = 2, decomposition = TRUE)
+#'
+#' model <- bcgpmodel(x = simData@training$x, y = simData@training$y,
+#'                    composite = TRUE, stationary = FALSE, noise = FALSE)
+#' fit <- bcgp_sampling(model, scaled = TRUE, cores = 4, nmcmc = 500,
+#'                      burnin = 200)
+#'
+#' posterior_predict(fit)
+#' posterior_predict(fit, newdata = matrix(runif(200, -0.5, 1.5), ncol = 2))
+#'
+#' @export
+setMethod("posterior_predict", signature = "bcgpfit",
+          function(object, newdata = NULL) {
+
+            if(is.null(newdata)){
+              xPred <- object@data$scaled$x
+            }else{
+              stopifnot(is.matrix(newdata), is.numeric(newdata),
+                      ncol(newdata) == ncol(object@data$scaled$x),
+                      !anyNA(newdata))
+
+              xPred <- scaleXPred(newData, object@data$scaled$x)
+            }
+
+            samples <- object@sims
+
+            if(isTRUE(object@composite)){
+              if(isFALSE(object@stationary)){
+                ## composite, non- stationary
+                out <- posterior_predict_CompNS(xPred, samples)
+              }else{
+                ## composite, stationary
+                out <- posterior_predict_CompS(xPred, samples)
+              }
+            }else{
+              if(isFALSE(object@stationary)){
+                ## non-composite, non- stationary
+                out <- posterior_predict_NonCompNS(xPred, samples)
+              }else{
+                ## non-composite, stationary
+                out <- posterior_predict_NonCompS(xPred, samples)
+              }
+            }
+
+            return(out)
+
+          }
+)
+
+posterior_predict_CompNS <- function(xPred, samples){
+
+  samplesNames <- colnames(samples)
+  rhoGNames <- samplesNames[startsWith(samplesNames, "rhoG")]
+  rhoLNames <- samplesNames[startsWith(samplesNames, "rhoL")]
+  rhoVNames <- samplesNames[startsWith(samplesNames, "rhoV")]
+  VNames <- samplesNames[startsWith(samplesNames, "V")]
+
+
+}
