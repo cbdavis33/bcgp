@@ -57,7 +57,8 @@ information}
 \item{\code{algorithm}}{Either \code{"NUTS"} for the \emph{No U-Turn Sampler}
 implemented by Stan, or \code{"MH"} for a Metropolis-Hastings algorithm}
 
-\item{\code{sampler_args}}{A list containing arguments for the sampling algorithm.}
+\item{\code{sampler_args}}{A list containing information about the sampling
+algorithm.}
 }}
 
 \examples{

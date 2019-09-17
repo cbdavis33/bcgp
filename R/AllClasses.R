@@ -95,6 +95,8 @@ setClass(Class = "bcgpmodel",
                           distributions = list()))
 
 
+setOldClass("mcmc.list")
+
 #' An S4 class to represent a fitted BCGP model
 #'
 #' This class contains the data, both raw and scaled, information about the
@@ -132,7 +134,8 @@ setClass(Class = "bcgpmodel",
 #' information
 #' @slot algorithm Either \code{"NUTS"} for the \emph{No U-Turn Sampler}
 #' implemented by Stan, or \code{"MH"} for a Metropolis-Hastings algorithm
-#' @slot sampler_args A list containing arguments for the sampling algorithm.
+#' @slot sampler_args A list containing information about the sampling
+#' algorithm.
 #' @seealso \code{\link{bcgp_sampling}} \linkS4class{bcgpmodel}
 #' \code{\link{bcgpmodel}}
 #' @examples
@@ -158,7 +161,7 @@ setClass(Class = "bcgpfit",
                    init = "list",
                    model_pars = "character",
                    par_dims = "list",
-                   sim = "list",
+                   sims = "mcmc.list",
                    algorithm = "character",
                    sampler_args = "list",
                    date = "character"))

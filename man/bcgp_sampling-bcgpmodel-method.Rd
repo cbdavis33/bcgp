@@ -6,8 +6,9 @@
 \title{Draw samples from a BCGP model}
 \usage{
 \S4method{bcgp_sampling}{bcgpmodel}(object, algorithm = c("NUTS", "MH"),
-  scaled = TRUE, chains = 4L, init = "random", numUpdates = 5,
-  nAdapt = 1000, burnin = 1000, nmcmc = 10000, ...)
+  scaled = TRUE, chains = 4L, cores = getOption("mc.cores", 1L),
+  init = "random", numUpdates = 5, nAdapt = 1000, burnin = 1000,
+  nmcmc = 10000, thin = 1, ..., control = NULL)
 }
 \arguments{
 \item{object}{An instance of S4 class \code{bcgpmodel}.}
@@ -19,6 +20,13 @@ implemented by Stan, or \code{"MH"} for a Metropolis-Hastings algorithm}
 fitting. It is highly recommended to scale the data before fitting.}
 
 \item{chains}{A positive integer specifying the number of Markov chains}
+
+\item{cores}{The number of cores to use when executing the Markov chains in
+parallel. The default is to use the value of the \code{mc.cores} option if it
+has been set and otherwise to default to 1 core. However, it is recommended
+to set it to be as many processors as the hardware and RAM allow (up to the
+number of chains). See \code{\link[parallel]{detectCores}}if you don't know
+this number for your system.}
 
 \item{init}{Can be either the string "random" or a list of length
 \code{chains}. The elements of this list should be named lists, where each of
@@ -32,7 +40,7 @@ distributions.
 
 \code{init} via list:
 Set initial values by providing a list equal in length to the number of
-Markov chains. A call to \code{create_Inits()} will assist in the correct
+Markov chains. A call to \code{create_inits()} will assist in the correct
 creation of this list.
 }}
 
@@ -45,24 +53,14 @@ parameter \code{warmup} in \code{\link[rstan]{stan}}}
 
 \item{nmcmc}{The number of samples to be kept for each Markov chain.}
 
+\item{thin}{A positive integer specifying the period for saving samples. The
+default is 1, and this number should not be changed, as thinning isn't
+necessary in these models, and it throws away information. Currently, only
+\code{thin = 1} is supported, and this argument may be deprecated in the
+future.}
+
 \item{...}{optional parameters, only if \code{algorithm = "NUTS"}. See the
-documentation for \code{\link[rstan]{stan}}. Arguments not listed here will
-be ignored.
-\describe{
-  \item{\code{control}}{A named list of parameters to control the sampler's
-  behavior. It defaults to NULL so all the default values are used. }
-  \item{\code{gridTest}}{A logical indicating whether the test data should be
-  generated on a grid. Defaults to \code{FALSE}. Only useful for
-  \eqn{d \geq 2}.}
-  \item{\code{gridTestSize}}{An integer indicating the number of points per
-  dimension for the test grid. Only useful for \eqn{d \geq 2}.}
-  \item{}{Be aware that a grid in high dimensions quickly gets very large.
-  For example, for \code{d} = 3 and \code{gridTestSize} = 10, the number of
-  points in this grid is \eqn{10^3 = 1000}. Therefore, in higher dimensions (
-  \eqn{d > 4}), the simulation will default to \code{gridTest = FALSE} if
-  \code{gridTestSize} is left unspecified, and \code{nTest} test locations
-  will be randomly selected on \eqn{[0, 1]^d}.}
-}}
+documentation for \code{\link[rstan]{stan}}. Any}
 
 \item{numAdapt}{A positive integer for the number of samples within each
 update in the proposal stepsize adaptation phase. Ignored if

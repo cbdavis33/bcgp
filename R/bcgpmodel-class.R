@@ -201,8 +201,24 @@ setMethod("bcgp_sampling", "bcgpmodel",
               iter <- nmcmc + warmup
               out1 <- bcgp_stan(object, scaled, chains, cores, iter, warmup,
                                 thin, control, ...)
+
+              sampler_args <- list(Stan = out1$sampler_args,
+                                   general = list(chains = chains,
+                                                  burnin = burnin,
+                                                  nmcmc = nmcmc,
+                                                  thin = thin))
+
             }
-            else out1 <- bcgp_MH(object, scaled, ...)
+            else{
+              out1 <- bcgp_MH(object, scaled, ...)
+
+              sampler_args <- list(MH = list(numUpdates = 5,
+                                             nAdapt = 1000),
+                                   general = list(chains = chains,
+                                                  burnin = burnin,
+                                                  nmcmc = nmcmc,
+                                                  thin = thin))
+            }
 
             # return(out)
             new("bcgpfit",
@@ -215,12 +231,12 @@ setMethod("bcgp_sampling", "bcgpmodel",
                 chains = chains,
                 priors = object@priors,
                 distributions = object@distributions,
-                init = out1$inits,
+                init = out1$init,
                 model_pars = out1$model_pars,
                 par_dims = out1$par_dims,
-                sim = out1$sim,
+                sims = out1$sims,
                 algorithm = algorithm,
-                sampler_args = out1$sampler_args,
+                sampler_args = sampler_args,
                 date = date())
 
             })
