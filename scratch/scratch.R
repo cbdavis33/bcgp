@@ -52,3 +52,11 @@ print(fitCompNSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG"),
       quantiles = c(0.01, 0.25, 0.75, 0.99, 0.5))
 # bcgp:::print.bcgpfit(fitCompNSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG"))
 summary(fitCompNSRaw)
+
+
+
+G <- getCorMatR(fitCompNSRaw@data$scaled$x, rho = c(0.6))
+L <- getCorMatR(fitCompNSRaw@data$scaled$x, rho = c(0.3))
+R <- combineCorMatsR(0.75, G, L)
+S <- getCovMatSR(1.3, R, 0.0001)
+

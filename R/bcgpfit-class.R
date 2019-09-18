@@ -155,13 +155,26 @@ setMethod("posterior_predict", signature = "bcgpfit",
           }
 )
 
-posterior_predict_CompNS <- function(xPred, samples){
+posterior_predict_CompNS <- function(xPred, xTrain, yTrain, samples){
 
   samplesNames <- colnames(samples)
   rhoGNames <- samplesNames[startsWith(samplesNames, "rhoG")]
   rhoLNames <- samplesNames[startsWith(samplesNames, "rhoL")]
   rhoVNames <- samplesNames[startsWith(samplesNames, "rhoV")]
   VNames <- samplesNames[startsWith(samplesNames, "V")]
+  x <- rbind(xPred, xTrain)
 
+  for(i in 1:nrow(samples)){
+
+    if(i %% 100 == 0) cat(paste0("Predict: ", i, "th iteration\n"))
+
+    G <- getCorMatR(x, samples[i, rhoGNames])
+    L <- getCorMatR(x, samples[i, rhoLNames])
+    R <- combineCorMatsR(samples[i, "w"], G, L)
+
+    RV <- getCorMatR(x, samples[i, rhoVNames])
+    K <- getCovMatSR(samples[i, "sig2V"], RV, samples[i, "sig2Eps"])
+
+  }
 
 }

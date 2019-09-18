@@ -250,8 +250,26 @@ prepare_sampling_args <- function(object, dots){
     out$warmup <- dots$warmup
   }
 
+}
+
+sampleMVRnorm <- function(S, mn, train){
+
+  nt <- length(train)
+  np <- nrow(S) - nt
+
+  Sp <- S[1:np, 1:np]
+  St <- S[(np + 1):(np + nt), (np + 1):(np + nt)]
+  Spt <- S[1:np, (np + 1):(np + nt)]
+
+  cholSR <- try(chol(S), silent = TRUE)
+  if(is.matrix(cholSR)){
+
+  }
+  SptStInv <-
 
 
-
-
+  #   cholAR <- try(chol(A), silent = TRUE)
+  # if(is.matrix(cholAR)){
+  #
+  #   tmp1 <- lapply(x1, forwardsolve, l = t(cholAR), k = ncol(cholAR))
 }
