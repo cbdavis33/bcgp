@@ -52,8 +52,8 @@ create_priors <- function(composite = TRUE, stationary = FALSE,
   }
 
   if(isFALSE(noise)){
-    priorInfo$priors$sig2eps <- list(alpha = 1e-3,
-                                     beta = 1e-3)
+    priorInfo$priors$sig2eps <- list(alpha = 1.1,
+                                     beta = 1e-6)
   }else{
     priorInfo$priors$sig2eps <- list(alpha = 1e-1,
                                      beta = 1e-1)

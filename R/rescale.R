@@ -88,3 +88,32 @@ scaleXPred <- function(newdata, x){
                            'scaled:range' = attributes(x)$`scaled:range`)
   return(xPredScaled)
 }
+
+#' Unscale a response vector
+#' @description Unscales a response vector to the same scale as the scaled
+#' training data response vector
+#' @details This function scales a vector to the same scale as the scaled
+#' training data response vector by multiplying the response by the standard
+#' deviation of the training data and adding the mean of the training data
+#' @usage unscaleY(y, yTrain)
+#' @param \code{y} A numeric vector of length \code{nPred}
+#' @param \code{yTrain} A numeric vector of length \code{nPred} that has already
+#' been scaled. This vector needs to have attributes \code{"scaled:center"}
+#' and \code{"scaled:scale"}
+#' @return A vector rescaled to it's natural scale with attributes
+#' \code{"scaled:minimum"} and \code{"scaled:range"}
+#' @examples
+#' @author Casey Davis (\email{cbdavis33@@gmail.com})
+unscaleY <- function(yPred, yTrain){
+
+  std <- attributes(yTrain)$`scaled:scale`
+  mn <- attributes(yTrain)$`scaled:center`
+
+  out <- mn + std*yPred
+  out <- structure(out,
+                   'scaled:center' = mn,
+                   'scaled:scale' = std)
+
+  return(out)
+
+}

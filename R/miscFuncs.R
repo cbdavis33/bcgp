@@ -261,15 +261,8 @@ sampleMVRnorm <- function(S, mn, train){
   St <- S[(np + 1):(np + nt), (np + 1):(np + nt)]
   Spt <- S[1:np, (np + 1):(np + nt)]
 
-  cholSR <- try(chol(S), silent = TRUE)
-  if(is.matrix(cholSR)){
-
-  }
-  SptStInv <-
-
-
-  #   cholAR <- try(chol(A), silent = TRUE)
-  # if(is.matrix(cholAR)){
-  #
-  #   tmp1 <- lapply(x1, forwardsolve, l = t(cholAR), k = ncol(cholAR))
+  SptT <- t(Spt)
+  SptStInv <- t(solve(St, SptT))
+  out <- MASS::mvrnorm(1, mn*rep(1, np) + SptStInv %*% (train - mn),
+                       Sp - SptStInv %*% SptT)
 }
