@@ -6,7 +6,8 @@ Authors@R:
            family = "Davis",
            role = c("aut", "cre"),
            email = "cbdavis33@gmail.com")
-Description: What the package does (one paragraph).
+Description: This package implements a Bayesian version of Gaussian Process
+    regression.
 License: GPL (>=3)
 Depends: 
     methods,
@@ -33,5 +34,6 @@ RoxygenNote: 6.1.1
 Suggests: 
     lhs,
     knitr,
-    rmarkdown
+    rmarkdown,
+    mvnfast
 VignetteBuilder: knitr

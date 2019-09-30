@@ -92,3 +92,312 @@ bcgp_model <- function(x, y, composite = TRUE, stationary = FALSE,
               scaled = scaled)
 
 }
+
+bcgp_stan <- function(x, scaled, chains, cores, iter, warmup, thin, control,
+                      ...){
+
+  # dots <- list(...)
+  # if("thin" %in% names(dots) && dots$thin != 1){
+  #   message(strwrap(prefix = " ", initial = "",
+  #                   "There's no reason to thin these models."))
+  #
+  # }
+
+  if(isTRUE(x@composite)){
+    if(isFALSE(x@stationary)){
+      ## composite, non- stationary
+      out <- bcgp_stan_CompNS(x, scaled, chains, cores, iter, warmup, thin,
+                              control, ...)
+    }else{
+      ## composite, stationary
+      out <- bcgp_stan_CompS(x, scaled, chains, cores, iter, warmup, thin,
+                             control, ...)
+    }
+  }else{
+    if(isFALSE(x@stationary)){
+      ## non-composite, non- stationary
+      out <- bcgp_stan_NonCompNS(x, scaled, chains, cores, iter, warmup, thin,
+                                 control, ...)
+    }else{
+      ## non-composite, stationary
+      out <- bcgp_stan_NonCompS(x, scaled, chains, cores, iter, warmup, thin,
+                                control, ...)
+    }
+  }
+  return(out)
+}
+
+bcgp_stan_NonCompS <- function(x, scaled, chains, cores, iter, warmup, thin,
+                               control, ...){
+
+
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
+  }else{
+    xIn <- x@data$x
+    yIn <- x@data$y
+  }
+
+  d <- ncol(xIn)
+  n <- length(yIn)
+
+  stanData <- list(x = xIn,
+                   y = as.vector(yIn),
+                   n = n,
+                   d = d,
+                   rhoAlpha = array(x@priors$rho$alpha, dim = d),
+                   rhoBeta = array(x@priors$rho$beta, dim = d),
+                   sig2Alpha = x@priors$sigma2$alpha,
+                   sig2Beta = x@priors$sigma2$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+
+  # dots <- list(...)
+  # args <- prepare_sampling_args(x, dots)
+
+
+
+  stanFit <- rstan::sampling(stanmodels$stanNonCompS, data = stanData,
+                             pars = c("beta0", "rho", "sig2Eps", "sig2"),
+                             chains = chains, cores = cores, iter = iter,
+                             warmup = warmup, thin = thin, control = control,
+                             ...)
+  # stanFit <- do.call(rstan::sampling, list(object = stanmodels$stanNonCompS, data = stanData,
+  #                    pars = c("beta0", "rho", "sig2Eps", "sig2"), thin = dots$thin,
+  #                    chains))
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  # model_name = out1$model_name,
+  # data = out1$data,
+  # stationary = object@stationary,
+  # composite = object@composite,
+  # noise = object@noise,
+  # scaled = scaled,
+  # chains = chains,
+  # priors = object@priors,
+  # distributions = object@distributions,
+  # init = out1$inits,
+  # model_pars = out1$model_pars,
+  # par_dims = out1$par_dims,
+  # sim = out1$sim,
+  # algorithm = algorithm,
+  # sampler_args = out1$sampler_args,
+  # date = date())
+
+  out <- list(data = data,
+              model_name = "noncomposite_stationary",
+              init = stanFit@inits,
+              model_pars = c("beta0", "rho", "sig2Eps", "sig2"),
+              par_dims = list(beta0 = numeric(0),
+                              rho = d,
+                              sig2Eps = numeric(0),
+                              sig2 = numeric(0)),
+              sims = rstan::As.mcmc.list(stanFit),
+              sampler_args = sampler_args)
+
+  return(out)
+}
+
+bcgp_stan_CompS <- function(x, scaled, chains, cores, iter, warmup, thin,
+                            control, ...){
+
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
+  }else{
+    xIn <- x@data$x
+    yIn <- x@data$y
+  }
+
+  d <- ncol(xIn)
+  n <- length(yIn)
+
+  stanData <- list(x = xIn,
+                   y = as.vector(yIn),
+                   n = n,
+                   d = d,
+                   wLower = x@priors$w$lower, wUpper = x@priors$w$upper,
+                   wAlpha = x@priors$w$alpha, wBeta = x@priors$w$beta,
+                   rhoGAlpha = array(x@priors$rhoG$alpha, dim = d),
+                   rhoGBeta = array(x@priors$rhoG$beta, dim = d),
+                   rhoLAlpha = array(x@priors$rhoL$alpha, dim = d),
+                   rhoLBeta = array(x@priors$rhoL$beta, dim = d),
+                   sig2Alpha = x@priors$sigma2$alpha,
+                   sig2Beta = x@priors$sigma2$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+  stanFit <- rstan::sampling(stanmodels$stanCompS, data = stanData,
+                             pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
+                                      "sig2"),
+                             chains = chains, cores = cores, iter = iter,
+                             warmup = warmup, thin = thin, control = control,
+                             ...)
+
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "composite_stationary",
+              init = stanFit@inits,
+              model_pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
+                             "sig2"),
+              par_dims = list(beta0 = numeric(0),
+                              w = numeric(0),
+                              rhoG = d,
+                              rhoL = d,
+                              sig2Eps = numeric(0),
+                              sig2 = numeric(0)),
+              sims = rstan::As.mcmc.list(stanFit),
+              sampler_args = sampler_args)
+
+  return(out)
+}
+
+bcgp_stan_CompNS <- function(x, scaled, chains, cores, iter, warmup, thin,
+                             control, ...){
+
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
+  }else{
+    xIn <- x@data$x
+    yIn <- x@data$y
+  }
+
+  d <- ncol(xIn)
+  n <- length(yIn)
+
+  stanData <- list(x = xIn,
+                   y = as.vector(yIn),
+                   n = n,
+                   d = d,
+                   wLower = x@priors$w$lower,
+                   wUpper = x@priors$w$upper,
+                   wAlpha = x@priors$w$alpha,
+                   wBeta = x@priors$w$beta,
+                   rhoGAlpha = array(x@priors$rhoG$alpha, dim = d),
+                   rhoGBeta = array(x@priors$rhoG$beta, dim = d),
+                   rhoLAlpha = array(x@priors$rhoL$alpha, dim = d),
+                   rhoLBeta = array(x@priors$rhoL$beta, dim = d),
+                   muVBetaV = x@priors$muV$betaV,
+                   muVSig2 = x@priors$muV$sig2,
+                   rhoVAlpha = array(x@priors$rhoV$alpha, dim = d),
+                   rhoVBeta = array(x@priors$rhoV$beta, dim = d),
+                   sig2VAlpha = x@priors$sig2V$alpha,
+                   sig2VBeta = x@priors$sig2V$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+  stanFit <- rstan::sampling(stanmodels$stanCompNS, data = stanData,
+                             pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
+                                      "muV", "sig2V", "rhoV", "V"),
+                             chains = chains, cores = cores, iter = iter,
+                             warmup = warmup, thin = thin, control = control,
+                             ...)
+
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "composite_nonstationary",
+              init = stanFit@inits,
+              model_pars = c("beta0", "w", "rhoG", "rhoL", "sig2Eps",
+                             "muV", "sig2V", "rhoV", "V"),
+              par_dims = list(beta0 = numeric(0),
+                              w = numeric(0),
+                              rhoG = d,
+                              rhoL = d,
+                              sig2Eps = numeric(0),
+                              muV = numeric(0),
+                              sig2V = numeric(0),
+                              rhoV = d,
+                              V = n),
+              sims = rstan::As.mcmc.list(stanFit),
+              sampler_args = sampler_args)
+
+  return(out)
+}
+
+
+bcgp_stan_NonCompNS <- function(x, scaled, chains, cores, iter, warmup, thin,
+                                control, ...){
+
+  data <- list(raw = list(x = x@data$x, y = x@data$y),
+               scaled = list(x = scaleX(x@data$x),
+                             y = scale(x@data$y, center = TRUE,
+                                       scale = TRUE)))
+
+
+  if(isTRUE(scaled)){
+    xIn <- data$scaled$x
+    yIn <- data$scaled$y
+  }else{
+    xIn <- x@data$x
+    yIn <- x@data$y
+  }
+
+  d <- ncol(xIn)
+  n <- length(yIn)
+
+  stanData <- list(x = xIn,
+                   y = as.vector(yIn),
+                   n = n,
+                   d = d,
+                   rhoAlpha = array(x@priors$rho$alpha, dim = d),
+                   rhoBeta = array(x@priors$rho$beta, dim = d),
+                   muVBetaV = x@priors$muV$betaV,
+                   muVSig2 = x@priors$muV$sig2,
+                   rhoVAlpha = array(x@priors$rhoV$alpha, dim = d),
+                   rhoVBeta = array(x@priors$rhoV$beta, dim = d),
+                   sig2VAlpha = x@priors$sig2V$alpha,
+                   sig2VBeta = x@priors$sig2V$beta,
+                   sig2EpsAlpha = x@priors$sig2eps$alpha,
+                   sig2EpsBeta = x@priors$sig2eps$beta)
+
+
+  stanFit <- rstan::sampling(stanmodels$stanNonCompNS, data = stanData,
+                             pars = c("beta0", "rho", "sig2Eps",
+                                      "muV", "sig2V", "rhoV", "V"),
+                             chains = chains, cores = cores, iter = iter,
+                             warmup = warmup, thin = thin, control = control,
+                             ...)
+
+  sampler_args <- get_sampler_args_stan(stanFit)
+
+  out <- list(data = data,
+              model_name = "noncomposite_nonstationary",
+              init = stanFit@inits,
+              model_pars = c("beta0", "rho", "sig2Eps",
+                             "muV", "sig2V", "rhoV", "V"),
+              par_dims = list(beta0 = numeric(0),
+                              rho = d,
+                              sig2Eps = numeric(0),
+                              muV = numeric(0),
+                              sig2V = numeric(0),
+                              rhoV = d,
+                              V = n),
+              sims = rstan::As.mcmc.list(stanFit),
+              sampler_args = sampler_args)
+
+  return(out)
+
+}

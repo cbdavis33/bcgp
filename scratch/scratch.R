@@ -1,75 +1,167 @@
 rm(list = ls())
 cat("\014")
 
-BJX <- function(x){
-  if(!is.matrix(x)){
-    stop("x should be a matrix.")
-  }
-  if(dim(x)[2] != 1){
-    stop("x must have exactly one column.")
-  }
-  y <- sin(30*(x - .9)^4)*cos(2*(x - .9)) + (x - .9)/2
-  return(y)
-}
+library(bcgp)
 
-xTrain <- matrix(c(seq(0, .4 + .4/11, by = .4/11), seq(0.5, 1, by = 0.5/3)), ncol = 1)
-yTrain <- BJX(xTrain)
-xTest <- matrix(sort(c(xTrain, seq(min(xTrain), max(xTrain), 0.005))), ncol = 1)
+pars <- create_parameter_list(composite = TRUE, stationary = FALSE, noise = FALSE, d = 2)
 
-chains <- 1
+seed <- sample(1e5, 1)
+seed <- 96762
+print(seed) # 5088
+simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE, d = 2,
+                    parameters = pars, seed = seed, decomposition = TRUE)
+plot(simData, decomposition = TRUE)
 
 
-priors <- createPriors(xTrain, noise = FALSE)
-inits <- createInits(xTrain, priors, chains = chains)
+modelCompNSScaled <- bcgpmodel(x = simData@training$x, y = simData@training$y,
+                               composite = TRUE, stationary = FALSE, noise = FALSE)
+fitCompNSScaled <- bcgp_sampling(modelCompNSScaled, scaled = TRUE, cores = 4, nmcmc = 500, burnin = 200)
 
-fit <- bcgp(x = xTrain, y = yTrain, priors = priors,
-            inits = inits, numUpdates = 5, numAdapt = 500,
-            burnin = 100, nmcmc = 2000, chains = chains, cores = 1,
-            noise = FALSE)
+fitCompNSScaled
+print(fitCompNSScaled, digits_summary = 3)
+print(fitCompNSScaled, digits_summary = 3, pars = c("beta0", "w", "rhoG"))
+print(fitCompNSScaled, digits_summary = 3, pars = c("beta0", "w", "rhoG"),
+      quantiles = c(0.01, 0.25, 0.75, 0.99, 0.5))
+# bcgp:::print.bcgpfit(fitCompNSScaled, digits_summary = 3, pars = c("beta0", "w", "rhoG"))
+summary(fitCompNSScaled)
 
-n <- 15
-beta0 <- 0
-rho <- 0.3
-sigma2eps <- 0.0001
-sigma2 <- 0.25
-xTrain <- matrix(seq(0, 1, length.out = n), ncol = 1)
+xPred <- seq(-0.2, 1.2, length.out = 20)
+predict(fitCompNSRaw, newdata = NULL, prob = 0.95)
+predict(fitCompNSRaw, newdata = xPred, prob = 0.95)
 
-getCorMatR <- function(x, rho){
+#####################################################################
 
-  # # If I choose not to export this function, then I'll skip the error-checking
-  # # since the only time this function would be called is if everything is correct.
-  # stopifnot(is.matrix(x), is.numeric(x), (0 <= rho && rho <= 1),
-  #           ncol(x) == length(rho))
+pars <- create_parameter_list(composite = TRUE, stationary = FALSE, noise = FALSE,
+                              d = 1)
+pars$beta0 <- 5 # beta0 is more likw 15 after scaling below
 
-  n <- nrow(x)
-  d <- ncol(x)
+seed <- sample(1e5, 1)
+simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE, d = 1,
+                    parameters = pars, seed = seed, decomposition = TRUE)
+plot(simData, decomposition = TRUE)
 
-  R <- matrix(0, nrow = n, ncol = n)
+rawData <- list(x = simData@training$x*10,
+                y = simData@training$y*3)
 
-  for(i in 1:(n-1)){
-    R[i, i] <- 1.0
-    for(j in (i+1):n){
-      R[i, j] <- 1.0
-      dist <- x[i, ] - x[j, ]
-      R[i, j] <- prod(rho^(16*dist^2))
-      R[j, i] <- R[i, j]
-    }
+plot(rawData$x, rawData$y)
 
-  }
-  R[n, n] <- 1.0
-  return(R)
-}
 
-R <- getCorMatR(xTrain, rho)
-C <- sigma2*R + diag(sigma2eps, length(xTrain))
-yTrain <- MASS::mvrnorm(1, rep(beta0, length(xTrain)), C)
-plot(xTrain, yTrain, type = 'l')
-points(xTrain, yTrain)
+modelCompNSRaw <- bcgpmodel(x = rawData$x, y = rawData$y,
+                               composite = TRUE, stationary = FALSE, noise = FALSE)
+fitCompNSRaw <- bcgp_sampling(modelCompNSRaw, scaled = FALSE, cores = 4,
+                              nmcmc = 1000, burnin = 500)
 
-tmp <- standardstationary(xTrain, as.vector(yTrain),
-                          cores = 4,
-                          control = list(adapt_delta = 0.99,
-                                         max_treedepth = 15))
+fitCompNSRaw
+fitCompNSRaw
+print(fitCompNSRaw, digits_summary = 3)
+print(fitCompNSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG", "rhoL"))
+print(fitCompNSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG", "rhoL"),
+      quantiles = c(0.01, 0.25, 0.75, 0.99, 0.5))
+# bcgp:::print.bcgpfit(fitCompNSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG"))
+summary(fitCompNSRaw)
 
-print(tmp, digits = 4)
-shinystan::launch_shinystan(tmp)
+
+xPred <- seq(-2, 12, length.out = 100)
+p_p <- posterior_predict(fitCompNSRaw, newdata = NULL)
+predict(fitCompNSRaw, newdata = NULL, prob = 0.95)
+blah <- predict(fitCompNSRaw, newdata = xPred, prob = 0.90)
+blah
+plot(blah)
+
+
+
+##################################################################
+
+rm(list = ls())
+cat("\014")
+
+pars <- create_parameter_list(composite = TRUE, stationary = TRUE, noise = FALSE,
+                              d = 1)
+pars$beta0 <- 5 # beta0 is more likw 15 after scaling below
+
+seed <- sample(1e5, 1)
+seed <- 56938
+simData <- bcgpsims(composite = TRUE, stationary = TRUE, noise = FALSE, d = 1,
+                    parameters = pars, seed = seed, decomposition = TRUE)
+plot(simData, decomposition = TRUE)
+
+rawData <- list(x = simData@training$x*10,
+                y = simData@training$y*3)
+
+plot(rawData$x, rawData$y)
+
+
+modelCompSRaw <- bcgpmodel(x = rawData$x, y = rawData$y,
+                           composite = TRUE, stationary = TRUE, noise = FALSE)
+modelCompSRaw@priors$sig2eps$alpha <- 1.1
+modelCompSRaw@priors$sig2eps$beta <- 1e-16
+modelCompSRaw@priors$sigma2$alpha <- 2
+modelCompSRaw@priors$sigma2$beta <- 2
+fitCompSRaw <- bcgp_sampling(modelCompSRaw, scaled = FALSE, cores = 4,
+                              nmcmc = 1000, burnin = 500)
+
+fitCompSRaw
+fitCompSRaw
+print(fitCompSRaw, digits_summary = 3)
+print(fitCompSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG", "rhoL"))
+print(fitCompSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG", "rhoL"),
+      quantiles = c(0.01, 0.25, 0.75, 0.99, 0.5))
+# bcgp:::print.bcgpfit(fitCompNSRaw, digits_summary = 3, pars = c("beta0", "w", "rhoG"))
+summary(fitCompSRaw)
+
+
+xPred <- seq(-2, 12, length.out = 20)
+p_p2 <- posterior_predict(fitCompSRaw, newdata = NULL)
+P_p1 <- predict(fitCompSRaw, newdata = NULL, prob = 0.95)
+blah <- predict(fitCompSRaw, newdata = xPred, prob = 0.90)
+blah
+
+plot(blah)
+
+
+########################################################################################################
+rm(list = ls())
+cat("\014")
+
+BJXModel <- bcgpmodel(x = BJX$x, y = BJX$y,
+                      composite = TRUE, stationary = FALSE, noise = FALSE)
+BJXModel@priors$sig2V$beta <- 10
+BJXFitScaled <- bcgp_sampling(BJXModel, scaled = FALSE, cores = 4, nmcmc = 1000,
+                        burnin = 500)
+
+BJXFitScaled
+BJXFitScaled
+
+BJXPredScaled <- predict(BJXFitScaled, newdata = BJX$xTest, prob = 0.95)
+plot(BJXPredScaled, print = FALSE) +
+  ggplot2::geom_line(data.frame(x = BJX$xTest, y = BJX$yTest),
+                     mapping = ggplot2::aes(x = x, y = y), color = "blue")
+
+summary(BJXFitScaled)
+
+rmspe(BJXPredScaled, BJX$yTest)
+
+#############################
+
+BJXModel <- bcgpmodel(x = BJX$x, y = BJX$y,
+                      composite = TRUE, stationary = FALSE, noise = FALSE)
+BJXModel@priors$sig2V$beta <- 10
+BJXFitNotScaled <- bcgp_sampling(BJXModel, scaled = FALSE, cores = 4, nmcmc = 1000,
+                              burnin = 500)
+
+BJXFitNotScaled
+BJXFitNotScaled
+
+BJXPredNotScaled <- predict(BJXFitNotScaled, newdata = BJX$xTest, prob = 0.95)
+plot(BJXPredNotScaled, print = FALSE) +
+  ggplot2::geom_line(data.frame(x = BJX$xTest, y = BJX$yTest),
+                     mapping = ggplot2::aes(x = x, y = y), color = "blue")
+
+summary(BJXFitNotScaled)
+
+rmspe(BJXPredNotScaled, BJX$yTest)
+
+
+
+
+

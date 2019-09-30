@@ -45,11 +45,4 @@ create_priors(composite = FALSE, stationary = TRUE, noise = TRUE, d = 3)
 \seealso{
 \linkS4class{bcgppriors} \code{\link{bcgppriors}}
 \code{\link{bcgp}}
-
-Other preprocessing functions: \code{\link{bcgpinits}},
-  \code{\link{bcgppriors}},
-  \code{\link{create_inits,bcgppriors-method}},
-  \code{\link{create_inits_raw}},
-  \code{\link{create_parameter_list}}
 }
-\concept{preprocessing functions}

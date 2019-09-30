@@ -39,3 +39,81 @@ scaleX <- function(x){
                        'scaled:range' = rangeX[2,] - rangeX[1,])
   return(xScaled)
 }
+
+#' Rescale a vector
+#' @description Rescales a vector to the same scale as a vector that has already
+#' been scaled to [0,1]
+#' @details Rescales a vector to the same scale as a vector that has already
+#' been scaled to [0,1]
+#' @usage rescaleXPred(newdata, x)
+#' @param \code{newdata} A vector input
+#' @param \code{x} A vector input that is scaled to
+#' @return A vector rescaled to [0, 1]
+#' @examples
+#' rescaleXPred(rnorm(10, 0, 100))
+#' @author Casey Davis (\email{cbdavis33@@gmail.com})
+rescaleXPred <- function(i, newdata, x){
+
+  minX <- attributes(x)$`scaled:minimum`[i]
+  rangeX <- attributes(x)$`scaled:range`[i]
+  scaled <- (newdata[, i] - minX)/rangeX
+
+  return(scaled)
+
+}
+
+#' Scale a matrix to the same scale as the scaled training data matrix
+#' @description Scales a matrix to the same scale as the scaled training data
+#' matrix
+#' @details This function scales a matrix to the same scale as the scaled
+#' training data matrix by subtracting off the minimum value of the training
+#' data in each column from each value and dividing by the range of the training
+#' data in that column.
+#' @usage scaleXPred(x)
+#' @param \code{newdata} An \code{n x d} matrix
+#' @param \code{x} An \code{n x d} matrix that has already been scaled to
+#' \eqn{[0, 1]^d}. This matrix needs to have attributes \code{"scaled:minimum"}
+#' and \code{"scaled:range"}
+#' @return A matrix rescaled to \deqn{[0, 1]^d} with attributes
+#' \code{"scaled:minimum"} and \code{"scaled:range"}
+#' @examples
+#' scaleXPred(matrix(runif(20, 0, 10), nrow = 50, ncol = 2),
+#'            scaleX(matrix(runif(20, 0, 5), nrow = 10, ncol = 2)))
+#' @author Casey Davis (\email{cbdavis33@@gmail.com})
+scaleXPred <- function(newdata, x){
+
+  xPredScaled <- sapply(1:ncol(newdata), rescaleXPred, newdata = newdata, x = x)
+  xPredScaled <- structure(xPredScaled,
+                           'scaled:minimum' = attributes(x)$`scaled:minimum`,
+                           'scaled:range' = attributes(x)$`scaled:range`)
+  return(xPredScaled)
+}
+
+#' Unscale a response vector
+#' @description Unscales a response vector to the same scale as the scaled
+#' training data response vector
+#' @details This function scales a vector to the same scale as the scaled
+#' training data response vector by multiplying the response by the standard
+#' deviation of the training data and adding the mean of the training data
+#' @usage unscaleY(y, yTrain)
+#' @param \code{y} A numeric vector of length \code{nPred}
+#' @param \code{yTrain} A numeric vector of length \code{nPred} that has already
+#' been scaled. This vector needs to have attributes \code{"scaled:center"}
+#' and \code{"scaled:scale"}
+#' @return A vector rescaled to it's natural scale with attributes
+#' \code{"scaled:minimum"} and \code{"scaled:range"}
+#' @examples
+#' @author Casey Davis (\email{cbdavis33@@gmail.com})
+unscaleY <- function(yPred, yTrain){
+
+  std <- attributes(yTrain)$`scaled:scale`
+  mn <- attributes(yTrain)$`scaled:center`
+
+  out <- mn + std*yPred
+  out <- structure(out,
+                   'scaled:center' = mn,
+                   'scaled:scale' = std)
+
+  return(out)
+
+}

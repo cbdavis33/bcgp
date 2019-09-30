@@ -1,25 +1,3 @@
-initFunc <- function(initList, priors, x){
-
-  d <- ncol(x)
-  n <- nrow(x)
-  initReturn <- vector("list")
-  initReturn$beta0 <- rnorm(1, 0, 1)
-  initReturn$w <- priors$w$lower + rbeta(1, priors$w$alpha, priors$w$beta)*
-    (priors$w$upper - priors$w$lower)
-  initReturn$rhoG <- rbeta(d, priors$rhoG$alpha, priors$rhoG$beta)
-  initReturn$rhoL <- initReturn$rhoG * rbeta(d, priors$rhoL$alpha, priors$rhoL$beta)
-  initReturn$sig2eps <- max(2* .Machine$double.eps,
-                            rgamma(1, shape = priors$sig2eps$alpha,
-                                   scale = priors$sig2eps$beta))
-  initReturn$muV <- rnorm(1, priors$muV$betaV, sqrt(priors$muV$sig2))
-  initReturn$rhoV <- rbeta(d, priors$rhoV$alpha, priors$rhoV$beta)
-  initReturn$sig2V <- 1/rgamma(1, priors$sig2V$alpha, scale = priors$sig2V$beta)
-  K <- initReturn$sig2V * getCorMat(x,initReturn$rhoV) + 1e-10*diag(n)
-  initReturn$V <- exp(MASS::mvrnorm(1, initReturn$muV*rep(1, n), K))
-  return(initReturn)
-
-}
-
 checkValidCorMat <- function(x){
 
   if(!is.matrix(x)) return(FALSE) # check that it's a matrix
@@ -167,4 +145,130 @@ checkSeed <- function(seed){
     seed <- as.integer(seed)
   }
   return(seed)
+}
+
+validate_bcgpmodel_inputs <- function(x, y, composite, stationary, noise){
+
+  validate_data(x, y)
+  validate_logical(composite)
+  validate_logical(stationary)
+  validate_logical(noise)
+
+}
+
+validate_data <- function(x, y){
+
+  validate_x(x)
+  validate_y(y)
+  validate_xy(x, y)
+
+}
+
+validate_x <- function(x){
+
+  if(!is.matrix(x)) stop("'x' must be a matrix.")
+  if(!is.numeric(x)) stop("'x' must be numeric.")
+  if(any(is.na(x))) stop("'x' must not have any NA values.")
+
+}
+
+validate_y <- function(y){
+
+  if(!is.numeric(y)) stop("'y' must be numeric.")
+  if(any(is.na(y))) stop("'y' must not have any NA values.")
+
+}
+
+validate_xy <- function(x, y){
+
+  if(nrow(x) != length(y))
+    stop("'x' must have the same number of rows as length of 'y'.")
+
+}
+
+validate_chains <- function(chains){
+
+  if(!is.numeric(chains)){
+    stop("'chains' must be an integer.")
+  }else if(is.infinite(chains)){
+    stop("'chains' must be an integer.")
+  }else if(chains < 1){
+    stop("'chains' must be at least 1.")
+  }else{
+    chains <- as.integer(chains)
+  }
+  return(chains)
+
+}
+
+validate_logical <- function(x){
+
+  if(!(isTRUE(x) || isFALSE(x)))
+    stop(strwrap(prefix = " ", initial = "",
+                 paste0("'", deparse(substitute(x)), "'", " must be either
+                        'TRUE' or 'FALSE'.")))
+
+}
+
+get_sampler_args_stan <- function(x){
+
+  list(algorithm = "NUTS",
+       iter = x@stan_args[[1]]$iter,
+       warmup = x@stan_args[[1]]$warmup,
+       thin = x@stan_args[[1]]$thin,
+       seed = sapply(x@stan_args, function(z) z$seed),
+       control = attr(x@sim$samples[[1]], "args")$control)
+
+}
+
+get_sim_stan <- function(x, sampler_args){
+
+  warmup2 <- 1 + (sampler_args$warmup - 1) %/% sampler_args$thin
+  n_kept <- 1 + (sampler_args$iter - sampler_args$warmup - 1) %/%
+    sampler_args$thin
+  n_save <- n_kept + warmup2
+
+  list(n_kept = nrow(x@sim$s))
+
+}
+
+prepare_sampling_args <- function(object, dots){
+
+  if("thin" %in% names(dots) && dots$thin != 1){
+    message(strwrap(prefix = " ", initial = "",
+                    "There's no reason to thin these models."))
+    out$thin <- 1
+  }
+
+  if("chains" %in% names(dots) && dots$chains != object$chains){
+    message(strwrap(prefix = " ", initial = "",
+                    "Setting 'chains' to the value in the bcgpmdel object."))
+    out$chains <- object@chains
+  }
+
+  if("warmup" %in% names(dots)){
+    out$warmup <- dots$warmup
+  }
+
+}
+
+sampleMVRnorm <- function(S, mn, train){
+
+  nt <- length(train)
+  np <- nrow(S) - nt
+
+  Sp <- S[1:np, 1:np]
+  St <- S[(np + 1):(np + nt), (np + 1):(np + nt)]
+  Spt <- S[1:np, (np + 1):(np + nt)]
+
+  SptT <- t(Spt)
+  SptStInv <- t(solve(St, SptT))
+
+  if(requireNamespace("mvnfast", quietly = TRUE)){
+    out <- mvnfast::rmvn(1, mn*rep(1, np) + SptStInv %*% (train - mn),
+                         Sp - SptStInv %*% SptT)
+  }else{
+    out <- MASS::mvrnorm(1, mn*rep(1, np) + SptStInv %*% (train - mn),
+                         Sp - SptStInv %*% SptT)
+  }
 }
