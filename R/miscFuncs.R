@@ -263,6 +263,12 @@ sampleMVRnorm <- function(S, mn, train){
 
   SptT <- t(Spt)
   SptStInv <- t(solve(St, SptT))
-  out <- MASS::mvrnorm(1, mn*rep(1, np) + SptStInv %*% (train - mn),
-                       Sp - SptStInv %*% SptT)
+
+  if(requireNamespace("mvnfast", quietly = TRUE)){
+    out <- mvnfast::rmvn(1, mn*rep(1, np) + SptStInv %*% (train - mn),
+                         Sp - SptStInv %*% SptT)
+  }else{
+    out <- MASS::mvrnorm(1, mn*rep(1, np) + SptStInv %*% (train - mn),
+                         Sp - SptStInv %*% SptT)
+  }
 }

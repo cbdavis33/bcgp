@@ -228,3 +228,126 @@ plotVarSims <- function(x, ...){
   }
   return(varPlot)
 }
+
+
+plotDataPreds <- function(x, decomposition, ...){
+
+  if(isTRUE(decomposition)){
+
+    if(isFALSE(x@composite))
+      stop(strwrap(prefix = " ", initial = "",
+                   "Cannot plot decomposition for non-composite processes"))
+
+    if(!("yG" %in% names(x@preds)))
+      stop(strwrap(prefix = " ", initial = "",
+                   "Cannot plot decomposition for a composite process without
+                   the global, local, and error process predictions
+                   decomposed."))
+
+    toReturn <- suppressWarnings(plotDataPredsYGL(x, ...))
+  }else{
+    toReturn <- suppressWarnings(plotDataPredsY(x, ...))
+  }
+  return(toReturn)
+}
+
+plotDataPredsYGL <- function(x, ...){
+  d <- ncol(x@data$raw$x)
+
+  titleStat <- ifelse(x@stationary, "Stationary", "Non-Stationary")
+  titleComp <- ifelse(x@composite, "Composite", "Non-Composite")
+  plotTitle <- paste(titleStat, titleComp, "BCGP Predictions", sep = " ")
+
+  if(d == 1){
+    dataToPlotPred <- data.frame(x = x@preds$x, y = x@preds$y, yG = x@preds$yG,
+                                 yL = x@preds$yL) %>%
+      tidyr::gather("process", "value", -x)
+
+    dataToPlot <- data.frame(x = x@data$raw$x, process = "data",
+                             value = x@data$raw$y) %>%
+      dplyr::bind_rows(dataToPlotPred)
+
+    dataPlot <- ggplot2::ggplot(mapping = ggplot2::aes(x = x, y = value,
+                                                       color = process)) +
+      ggplot2::ggtitle(plotTitle) +
+      ggplot2::geom_point(data = dplyr::filter(dataToPlot, process == "data"),
+                          ggplot2::aes(color = "red")) +
+      ggplot2::geom_line(data = dplyr::filter(dataToPlot, process == "y"),
+                         ggplot2::aes(color = "black")) +
+      ggplot2::geom_line(data = dplyr::filter(dataToPlot, process == "yG"),
+                         ggplot2::aes(color = "blue")) +
+      ggplot2::geom_line(data = dplyr::filter(dataToPlot, process == "yL"),
+                         ggplot2::aes(color = "green")) +
+      ggplot2::theme_classic() +
+      ggplot2::scale_color_manual(name = NULL,
+                                  values = c("red" = "red", "black" = "black",
+                                             "blue" = "blue",
+                                             "green" = "green"),
+                                  labels = c("Observed Data",
+                                             "Predicted Process",
+                                             "Predicted Global Process",
+                                             "Predicted Local Process"),
+                                  breaks = c("red", "black", "blue", "green"),
+                                  guide = ggplot2::guide_legend(
+                                    override.aes = list(
+                                      linetype = c("blank", "solid", "solid",
+                                                   "solid"),
+                                      shape = c(16, NA, NA, NA)))) +
+      ggplot2::ylab("Y(x)") +
+      ggplot2::theme(legend.position = "bottom",
+                     plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
+                     axis.title = ggplot2::element_text(size = 16))
+  }else{
+    stop("Plotting is currently only supported for 1-D data.")
+  }
+  return(dataPlot)
+}
+
+plotDataPredsY <- function(x, ...){
+  d <- ncol(x@data$raw$x)
+  dots <- list(...)
+
+  titleStat <- ifelse(x@stationary, "Stationary", "Non-Stationary")
+  titleComp <- ifelse(x@composite, "Composite", "Non-Composite")
+  plotTitle <- paste(titleStat, titleComp, "BCGP Predictions", sep = " ")
+
+  if(d == 1){
+
+    observedData <- data.frame(x = x@data$raw$x,
+                               y = x@data$raw$y)
+
+    predictions <- data.frame(cbind(x@preds$x, x@preds$y))
+    names(predictions) <- c("x", "Mean", "Median", "lower", "upper")
+
+    predPlot <- ggplot2::ggplot() +
+      ggplot2::ggtitle(plotTitle) +
+      ggplot2::geom_point(data = observedData,
+                          mapping = ggplot2::aes(x = x, y = y, color = "red")) +
+      ggplot2::geom_line(data = predictions,
+                         mapping = ggplot2::aes(x = x, y = Mean,
+                                                color = "black")) +
+      ggplot2::geom_ribbon(data = predictions,
+                           mapping = ggplot2::aes(x = x, ymin = lower,
+                                                  ymax = upper),
+                           fill = "yellow",
+                           alpha = 0.25) +
+      ggplot2::theme_classic() +
+      ggplot2::scale_color_manual(name = NULL,
+                                  values = c("red" = "red", "black" = "black"),
+                                  labels = c("Observed Data",
+                                             "Predicted Process"),
+                                  breaks = c("red", "black"),
+                                  guide = ggplot2::guide_legend(
+                                    override.aes = list(
+                                      linetype = c("blank", "solid"),
+                                      shape = c(16, NA)))) +
+      ggplot2::ylab("Y(x)") +
+      ggplot2::theme(legend.position = "bottom",
+                     plot.title = ggplot2::element_text(size = 16, hjust = 0.5),
+                     axis.title = ggplot2::element_text(size = 16))
+  }else{
+    stop("Plotting is currently only supported for 1-D and 2-D data.")
+  }
+  return(predPlot)
+}
+

@@ -20,7 +20,7 @@ print.bcgpfit <- function(x, pars = x@model_pars,
   cat("Inference for BCGP model: ", x@model_name, '.\n', sep = '')
   cat(x@chains, " chains, each with nmcmc = ", nmcmc,
       "; burnin = ", burnin, "; thin = ", thin, "; \n",
-      "total post-burnin draws=", x@chains*nmcmc, ".\n\n", sep = '')
+      "total post-burnin draws = ", x@chains*nmcmc, ".\n\n", sep = '')
 
   print(round(s, digits_summary))
 
@@ -120,6 +120,8 @@ setGeneric(name = "posterior_predict",
 setMethod("posterior_predict", signature = "bcgpfit",
           function(object, newdata = NULL, ...) {
 
+            if(is.vector(newdata)) newdata <- as.matrix(newdata)
+
             if(is.null(newdata)){
               if(isTRUE(object@scaled)){
                 xPred <- object@data$scaled$x
@@ -136,7 +138,7 @@ setMethod("posterior_predict", signature = "bcgpfit",
                       !anyNA(newdata))
 
               if(isTRUE(object@scaled)){
-                xPred <- scaleXPred(newData, object@data$scaled$x)
+                xPred <- scaleXPred(newdata, object@data$scaled$x)
                 xTrain <- object@data$scaled$x
                 yTrain <- object@data$scaled$y
               }else{
@@ -181,7 +183,7 @@ setMethod("posterior_predict", signature = "bcgpfit",
 posterior_predict_CompNS <- function(xPred, xTrain, yTrain, samples){
 
   samplesNames <- colnames(samples)
-  browser()
+
   rhoGNames <- samplesNames[startsWith(samplesNames, "rhoG")]
   rhoLNames <- samplesNames[startsWith(samplesNames, "rhoL")]
   rhoVNames <- samplesNames[startsWith(samplesNames, "rhoV")]
@@ -213,6 +215,88 @@ posterior_predict_CompNS <- function(xPred, xTrain, yTrain, samples){
 
 }
 
+posterior_predict_CompS <- function(xPred, xTrain, yTrain, samples){
+
+  samplesNames <- colnames(samples)
+
+  rhoGNames <- samplesNames[startsWith(samplesNames, "rhoG")]
+  rhoLNames <- samplesNames[startsWith(samplesNames, "rhoL")]
+  x <- rbind(xPred, xTrain)
+
+  yPred <- matrix(NA, nrow = nrow(samples), ncol = nrow(xPred))
+
+  for(i in 1:nrow(samples)){
+
+    if(i %% 100 == 0) cat(paste0("Predict: ", i, "th iteration\n"))
+
+    G <- getCorMatR(x, samples[i, rhoGNames])
+    L <- getCorMatR(x, samples[i, rhoLNames])
+    R <- combineCorMatsR(samples[i, "w"], G, L)
+    C <- getCovMatSR(samples[i, "sig2"], R, samples[i, "sig2Eps"])
+    yPred[i, ] <- sampleMVRnorm(C, samples[i, "beta0"], yTrain)
+  }
+
+  return(yPred)
+
+}
+
+posterior_predict_NonCompNS <- function(xPred, xTrain, yTrain, samples){
+
+  samplesNames <- colnames(samples)
+
+  rhoNames <- samplesNames[startsWith(samplesNames, "rho") &
+                             !startsWith(samplesNames, "rhoV")]
+  rhoVNames <- samplesNames[startsWith(samplesNames, "rhoV")]
+  VNames <- samplesNames[startsWith(samplesNames, "V")]
+  x <- rbind(xPred, xTrain)
+
+  yPred <- matrix(NA, nrow = nrow(samples), ncol = nrow(xPred))
+
+  for(i in 1:nrow(samples)){
+
+    if(i %% 100 == 0) cat(paste0("Predict: ", i, "th iteration\n"))
+
+    Vt <- samples[i, VNames]
+
+    R <- getCorMatR(x, samples[i, rhoNames])
+
+    RV <- getCorMatR(x, samples[i, rhoVNames])
+    K <- getCovMatSR(samples[i, "sig2V"], RV, 1e-10)
+    Vp <- exp(sampleMVRnorm(K, samples[i, "muV"], log(Vt)))
+
+    V <- c(Vp, Vt)
+    C <- getCovMatNSR(V, R, samples[i, "sig2Eps"])
+    yPred[i, ] <- sampleMVRnorm(C, samples[i, "beta0"], yTrain)
+  }
+
+  return(yPred)
+
+}
+
+posterior_predict_NonCompS <- function(xPred, xTrain, yTrain, samples){
+
+  samplesNames <- colnames(samples)
+
+  rhoNames <- samplesNames[startsWith(samplesNames, "rho") &
+                             !startsWith(samplesNames, "rhoV")]
+  x <- rbind(xPred, xTrain)
+
+  yPred <- matrix(NA, nrow = nrow(samples), ncol = nrow(xPred))
+
+  for(i in 1:nrow(samples)){
+
+    if(i %% 100 == 0) cat(paste0("Predict: ", i, "th iteration\n"))
+
+    R <- getCorMatR(x, samples[i, rhoNames])
+    C <- getCovMatSR(samples[i, "sig2"], R, samples[i, "sig2Eps"])
+    yPred[i, ] <- sampleMVRnorm(C, samples[i, "beta0"], yTrain)
+  }
+
+  return(yPred)
+
+}
+
+
 #' \code{predict} method for a \code{bcgpfit} object
 #'
 #' This function computes Bayesian posterior predictions and prediction
@@ -224,9 +308,11 @@ posterior_predict_CompNS <- function(xPred, xTrain, yTrain, samples){
 #' If \code{newdata} is provided, it should be provided on the same scale as the
 #' user-provided training data, i.e. do not transform to \eqn{[0, 1]^d}.
 #' @param prob a single number greater than 0 and less than 1 that specifes the
-#' width wodth of the posterior prediction interval. For example,
+#' width of the (equal-tailed) posterior prediction interval. For example,
 #' \code{prob = 0.90} specifies that 90\% prediction intervals are desired.
-#'
+#' @return An instance of S4 class \code{bcgpfitpred}
+#' @seealso \linkS4class{bcgpmodel} \linkS4class{bcgpfit}
+#' \code{\link[bcgp]{posterior_predict}}
 #' @examples
 #' simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE,
 #'                     d = 2, decomposition = TRUE)
@@ -249,18 +335,22 @@ setMethod("predict", signature = "bcgpfit",
                            single number greater than 0 and less than 1."))
             }
 
-            predList <- posterior_predict(object)
+            predList <- posterior_predict(object, newdata)
 
             postMean <- colMeans(predList$y)
             postQuantiles <- t(apply(predList$y, 2, quantile,
                                      probs = c(0.5, (1 - prob)/2,
                                                1 - (1 - prob)/2 )))
 
-            out <- cbind(postMean, postQuantiles)
-            colnames(out) <- c("Mean", "Median",
-                               colnames(postQuantiles)[c(2, 3)])
+            result <- cbind(postMean, postQuantiles)
+            colnames(result) <- c("Mean", "Median",
+                                  colnames(postQuantiles)[c(2, 3)])
 
-            return(as.data.frame(out))
+            toReturn <- new("bcgpfitpred",
+                            object,
+                            preds = list(x = predList$x,
+                                         y = result))
+            return(toReturn)
 
           }
 )

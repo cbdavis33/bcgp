@@ -23,12 +23,13 @@ object
 \examples{
 
 
-simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE, d = 2,
-                    decomposition = TRUE)
+simData <- bcgpsims(composite = TRUE, stationary = FALSE, noise = FALSE,
+                    d = 2, decomposition = TRUE)
 
 model <- bcgpmodel(x = simData@training$x, y = simData@training$y,
                    composite = TRUE, stationary = FALSE, noise = FALSE)
-fit <- bcgp_sampling(model, scaled = TRUE, cores = 4, nmcmc = 500, burnin = 200)
+fit <- bcgp_sampling(model, scaled = TRUE, cores = 4, nmcmc = 500,
+                     burnin = 200)
 
 fit
 print(fit, pars = c("beta0", "w", "rhoG", "rhoL"), digits_summary = 3)
