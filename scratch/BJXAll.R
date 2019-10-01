@@ -54,8 +54,8 @@ for(i in 1:numRuns){
 BJXModel <- bcgpmodel(x = BJX$x, y = BJX$y,
                       composite = TRUE, stationary = FALSE, noise = FALSE)
 BJXModel@priors$sig2V$beta <- 10
-BJXFitScaled <- bcgp_sampling(BJXModel, scaled = TRUE, cores = 4, nmcmc = 1000,
-                              burnin = 500)
+BJXFitScaled <- bcgp_sampling(BJXModel, scaled = TRUE, cores = 4, nmcmc = 200,
+                              burnin = 100)
 
 BJXFitScaled
 BJXFitScaled
@@ -74,28 +74,8 @@ rmspe(BJXPredScaled, BJX$yTest)
 BJXModel <- bcgpmodel(x = BJX$x, y = BJX$y,
                       composite = TRUE, stationary = FALSE, noise = FALSE)
 BJXModel@priors$sig2V$beta <- 10
-BJXFitNotScaled <- bcgp_sampling(BJXModel, scaled = FALSE, cores = 4, nmcmc = 1000,
-                                 burnin = 500)
-
-BJXFitNotScaled
-BJXFitNotScaled
-
-BJXPredNotScaled <- predict(BJXFitNotScaled, newdata = BJX$xTest, prob = 0.95)
-plot(BJXPredNotScaled, print = FALSE) +
-  ggplot2::geom_line(data.frame(x = BJX$xTest, y = BJX$yTest),
-                     mapping = ggplot2::aes(x = x, y = y), color = "blue")
-
-summary(BJXFitNotScaled)
-
-rmspe(BJXPredNotScaled, BJX$yTest)
-
-##########################################
-
-BJXModel <- bcgpmodel(x = BJX$x, y = BJX$y,
-                      composite = FALSE, stationary = FALSE, noise = FALSE)
-BJXModel@priors$sig2V$beta <- 10
-BJXFitNotScaled <- bcgp_sampling(BJXModel, scaled = FALSE, cores = 4, nmcmc = 1000,
-                                 burnin = 500)
+BJXFitNotScaled <- bcgp_sampling(BJXModel, scaled = FALSE, cores = 4, nmcmc = 200,
+                                 burnin = 100)
 
 BJXFitNotScaled
 BJXFitNotScaled
